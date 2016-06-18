@@ -1,0 +1,21 @@
+{
+    "name": "twhiston/tx",
+    "description": "Task Runner",
+    "authors": [
+        {
+            "name": "Thomas Whiston",
+            "email": "tom.whiston@gmail.com"
+        }
+    ],
+    "require": {
+        "twhiston/twLib": "^1.1"
+    },
+    "require-dev": {
+        "codegyre/robo": "^0.7.2"
+    },
+    "autoload": {
+        "psr-4" : {
+            "twhiston\\tx\\" : "src"
+        }
+    }
+}
