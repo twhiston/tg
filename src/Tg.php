@@ -8,6 +8,7 @@
 
 namespace twhiston\tg;
 
+use Robo\Config;
 use Robo\Result;
 use Robo\TaskInfo;
 use Symfony\Component\Console\Application;
@@ -145,7 +146,9 @@ class Tg
         }
 
         $app->setAutoExit(false);
-        return $app->run($input);
+        Config::setInput($this->input);
+        Config::setOutput($this->output);
+        return $app->run($this->input, $this->output);
     }
 
 
