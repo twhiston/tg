@@ -1,6 +1,6 @@
 {
-    "name": "twhiston/tx",
-    "description": "Task Runner",
+    "name": "twhiston/tg",
+    "description": "Robo Task Runner, with added autoloading",
     "authors": [
         {
             "name": "Thomas Whiston",
@@ -15,7 +15,7 @@
     },
     "autoload": {
         "psr-4" : {
-            "twhiston\\tx\\" : "src"
+            "twhiston\\tg\\" : "src"
         }
     }
 }

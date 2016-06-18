@@ -6,17 +6,17 @@
  */
 $vendor = '';
 if (strpos(basename(__FILE__), 'phar')) {
-    $vendor = 'phar://tx.phar/vendor';
+    $vendor = 'phar://tg.phar/vendor';
     require_once $vendor . '/autoload.php';
 } else {
     if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
         $vendor = __DIR__ . '/../vendor';
         require_once $vendor . '/autoload.php';
     } else {
-        $vendor = 'phar://tx.phar/vendor';
+        $vendor = 'phar://tg.phar/vendor';
         require_once $vendor . '/autoload.php';
     }
 }
-$runner = new \twhiston\tx\Tx($vendor);
+$runner = new \twhiston\tg\Tg($vendor);
 $exitCode = $runner->run();
 exit($exitCode);

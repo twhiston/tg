@@ -6,16 +6,17 @@
  * Time: 16:54
  */
 
-namespace twhiston\tx\Commands;
+namespace twhiston\tg\Commands;
 
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use twhiston\tg\Tg;
 
 /**
  * Class Init
- * @package twhiston\tx\Commands
+ * @package twhiston\tg\Commands
  */
 class Init extends Command
 {
@@ -26,7 +27,7 @@ class Init extends Command
     protected function configure()
     {
         $this
-            ->setName('tx:init')
+            ->setName('tg:init')
             ->setDescription('Make a file with commands in');
     }
 
@@ -40,23 +41,23 @@ class Init extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $txClass = 'TxCommands';
+        $txClass = Tg::TGCLASS;
         $filename = getcwd() . '/' . $txClass . '.php';
-        $output->writeln("<comment>  ~~~ Welcome to Tx! ~~~~ </comment>");
+        $output->writeln("<comment>  ~~~ Welcome to Tg! ~~~~ </comment>");
         $output->writeln("<comment>  " . $filename . " will be created in current dir </comment>");
-        $output->writeln("<comment>  You can also include any file in your project as a tx file by adding in the namespace \\tx\\Commands </comment>");
+        $output->writeln("<comment>  You can also include any file in your project as a tg file by adding in the namespace \\tg\\Commands </comment>");
         file_put_contents(
             $filename,
             '<?php'
             . "\n/**"
-            . "\n * This is project's console commands configuration for Tx task runner."
-            . "\n * You can use Robo commands in your command configuration"
+            . "\n * This is project's local console commands configuration for Tg Robo task runner."
+            . "\n * Write this file the same as any Robo file"
             . "\n *"
             . "\n * @see http://robo.li/"
             . "\n */"
             . "\nclass " . $txClass . " extends \\Robo\\Tasks\n{\n    // define public methods as commands\n}"
         );
-        $output->writeln("<comment>  Edit " . $filename . "to add your commands! </comment>");
+        $output->writeln("<comment>  Edit " . $filename . " to add your commands! </comment>");
 
     }
 

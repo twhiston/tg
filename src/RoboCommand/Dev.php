@@ -6,7 +6,7 @@
  * Time: 22:58
  */
 
-namespace twhiston\tx\RoboCommand;
+namespace twhiston\tg\RoboCommand;
 
 
 class Dev extends \Robo\Tasks

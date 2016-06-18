@@ -6,8 +6,7 @@
  * Time: 16:00
  */
 
-namespace twhiston\tx;
-
+namespace twhiston\tg;
 
 use Robo\Result;
 use Robo\TaskInfo;
@@ -19,20 +18,20 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use twhiston\twLib\Discovery\FindByNamespace;
-use twhiston\tx\Commands\Init;
+use twhiston\tg\Commands\Init;
 
 /**
  * Class Tx
- * @package twhiston\tx
+ * @package twhiston\tg
  */
-class Tx
+class Tg
 {
 
     const VERSION = '0.1.0';
 
-    const TXCLASS = 'TxCommands';
+    const TGCLASS = 'TgCommands';
 
-    const TXFILE = Tx::TXCLASS . '.php';
+    const TGFILE = Tg::TGCLASS . '.php';
 
     protected $output;
 
@@ -90,13 +89,13 @@ class Tx
         $this->dir = realpath($this->dir);
         chdir($this->dir);
 
-        if (!file_exists($this->dir . DIRECTORY_SEPARATOR . Tx::TXFILE)) {
+        if (!file_exists($this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE)) {
             return false;
         }
 
-        require_once $this->dir . DIRECTORY_SEPARATOR . Tx::TXFILE;
+        require_once $this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE;
 
-        if (!class_exists(Tx::TXCLASS)) {
+        if (!class_exists(Tg::TGCLASS)) {
             $this->writeln("<error>Class " . $this->roboClass . " was not loaded</error>");
             return false;
         }
@@ -109,7 +108,7 @@ class Tx
      * @return int|void
      * @throws \Exception
      *
-     * Run tx and return an error code
+     * Run tg and return an error code
      */
     public function run($input = null)
     {
@@ -123,24 +122,24 @@ class Tx
         if (!$this->loadTxCommands()) {
             $this->output->writeln("Tx is not initialized here. Will be initialized");
             $app->add(new Init('init'));
-            $app->setDefaultCommand('tx:init');
+            $app->setDefaultCommand('tg:init');
             $app->run($this->input, $this->output);
             return 0;
         }
 
         //Load our TxCommands file
-        $this->addCommandsFromClass($app, Tx::TXCLASS, $this->passThroughArgs);
+        $this->addCommandsFromClass($app, Tg::TGCLASS, $this->passThroughArgs);
 
         //Load our core commands
         $finder = new FindByNamespace(__DIR__);
-        $classes = $finder->find('tx\\RoboCommand');
+        $classes = $finder->find('tg\\RoboCommand');
         foreach ($classes as $class) {
             $this->addCommandsFromClass($app, $class, $this->passThroughArgs);
         }
 
         //Load our autoloaded commands
         $finder = new FindByNamespace($this->autoloader);
-        $classes = $finder->find('tx\\RoboCommand');
+        $classes = $finder->find('tg\\RoboCommand');
         foreach ($classes as $class) {
             $this->addCommandsFromClass($app, $class, $this->passThroughArgs);
         }
@@ -195,7 +194,7 @@ class Tx
     public function createCommand($className, TaskInfo $taskInfo)
     {
 
-        if ($className === strtolower(Tx::TXCLASS)) {
+        if ($className === strtolower(Tg::TGCLASS)) {
             $name = $taskInfo->getName();
         } else {
             $camel = preg_replace("/:/", '-', $taskInfo->getName());

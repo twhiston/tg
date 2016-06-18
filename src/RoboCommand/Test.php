@@ -6,7 +6,7 @@
  * Time: 23:02
  */
 
-namespace twhiston\tx\RoboCommand;
+namespace twhiston\tg\RoboCommand;
 
 
 class Test extends \Robo\Tasks
