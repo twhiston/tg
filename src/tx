@@ -4,15 +4,19 @@
  * if we're running from phar load the phar autoload,
  * else let the script 'robo' search for the autoloader
  */
+$vendor = '';
 if (strpos(basename(__FILE__), 'phar')) {
-    require_once 'phar://tx.phar/vendor/autoload.php';
+    $vendor = 'phar://tx.phar/vendor';
+    require_once $vendor . '/autoload.php';
 } else {
     if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-        require_once __DIR__ . '/../vendor/autoload.php';
+        $vendor = __DIR__ . '/../vendor';
+        require_once $vendor . '/autoload.php';
     } else {
-        require_once 'phar://tx.phar/vendor/autoload.php';
+        $vendor = 'phar://tx.phar/vendor';
+        require_once $vendor . '/autoload.php';
     }
 }
-$runner = new \twhiston\tx\Tx();
+$runner = new \twhiston\tx\Tx($vendor);
 $exitCode = $runner->run();
 exit($exitCode);
