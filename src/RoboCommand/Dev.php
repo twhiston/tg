@@ -8,8 +8,15 @@
 
 namespace twhiston\tg\RoboCommand;
 
+use Robo\Tasks;
 
-class Dev extends \Robo\Tasks
+/**
+ * Class Dev
+ * @package twhiston\tg\RoboCommand
+ *
+ * Development related tasks
+ */
+class Dev extends Tasks
 {
 
     /**
@@ -17,23 +24,8 @@ class Dev extends \Robo\Tasks
      */
     public function change()
     {
-        $version = $this->getVersion();
+        $version = $this->ver();
         $this->doChange($version);
-    }
-
-    protected function getVersion()
-    {
-        $path = __DIR__ . '/.semver';
-        return $this->taskSemVer($path)->__toString();
-    }
-
-    protected function doChange($version)
-    {
-
-        $this->taskChangelog()
-            ->version($version)
-            ->askForChanges()
-            ->run();
     }
 
     /**
@@ -42,23 +34,68 @@ class Dev extends \Robo\Tasks
      */
     public function bump()
     {
-        $path = __DIR__ . '/.semver';
+        $path = getcwd() . '/.semver';
         if (!file_exists($path)) {
-            $this->taskWriteToFile($path)->lines([
-                "---",
-                ":major: 0",
-                ":minor: 1",
-                ":patch: 0",
-                ":special: ''",
-                ":metadata: ''"
-            ])->run();
+            $this->makeSemverFile($path);
         }
+        $this->ver();
         $level = $this->askDefault("Update Type: PATCH/minor/major", 'patch');
         $result = $this->taskSemVer($path)
             ->increment($level)
             ->run();
         $ver = $result->getMessage();
         $this->doChange($ver);
+    }
+
+    /**
+     * @return mixed
+     *
+     * Get the current version number and yell it
+     */
+    public function ver()
+    {
+        $version = $this->getVersion();
+        $this->yell('Current Version: '.$version);
+        return $version;
+    }
+
+    /**
+     * @return mixed current version number
+     */
+    protected function getVersion()
+    {
+        $path = __DIR__ . '/.semver';
+        return $this->taskSemVer($path)->__toString();
+    }
+
+    /**
+     * @param $path
+     * make the semver file
+     */
+    protected function makeSemverFile($path)
+    {
+        $this->taskWriteToFile($path)->lines([
+            "---",
+            ":major: 0",
+            ":minor: 1",
+            ":patch: 0",
+            ":special: ''",
+            ":metadata: ''"
+        ])->run();
+    }
+
+    /**
+     * @param $version
+     *
+     * Writes changes to the log and bumps the version number if necessary
+     */
+    protected function doChange($version)
+    {
+
+        $this->taskChangelog()
+            ->version($version)
+            ->askForChanges()
+            ->run();
     }
 
 }
