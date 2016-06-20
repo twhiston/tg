@@ -45,7 +45,8 @@ class Init extends Command
         $filename = getcwd() . '/' . $txClass . '.php';
         $output->writeln("<comment>  ~~~ Welcome to Tg! ~~~~ </comment>");
         $output->writeln("<comment>  " . $filename . " will be created in current dir </comment>");
-        $output->writeln("<comment>  You can also include any file in your project as a tg file by adding in the namespace \\tg\\Commands </comment>");
+        $output->writeln("<comment>  You can also include any file in your project as a tg file by including tg\RoboCommand in the command namespace </comment>");
+        $output->writeln("<comment>  Add the file tgconf.yml and point to it from your TgCommands file to have argument options autoloaded </comment>");
         file_put_contents(
             $filename,
             '<?php'
@@ -55,7 +56,10 @@ class Init extends Command
             . "\n *"
             . "\n * @see http://robo.li/"
             . "\n */"
-            . "\nclass " . $txClass . " extends \\Robo\\Tasks\n{\n    // define public methods as commands\n}"
+            . "\nclass " . $txClass . " extends \\Robo\\Tasks\n{"
+            . "\n\n    const TGCONFIG = './tgconf.yml'; //Optional config file location"
+            . "\n\n    // define public methods as commands"
+            . "\n}"
         );
         $output->writeln("<comment>  Edit " . $filename . " to add your commands! </comment>");
 

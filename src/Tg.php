@@ -18,8 +18,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use twhiston\twLib\Discovery\FindByNamespace;
+use Symfony\Component\Yaml\Yaml;
+use TgCommands;
 use twhiston\tg\Commands\Init;
+use twhiston\twLib\Discovery\FindByNamespace;
 
 /**
  * Class Tx
@@ -52,12 +54,42 @@ class Tg
         $this->autoloader = $autoloader;
     }
 
+    protected function mergeArgv($argv)
+    {
+        //Merge our args with our config file
+        if (class_exists('TgCommands') && file_exists(TgCommands::TGCONFIG)) {
+            $configFile = Yaml::parse(file_get_contents(TgCommands::TGCONFIG));
+            //Tokenize the input and try to find the command name
+            $tokens = explode(':', $argv[1]);
+
+            if (array_key_exists($tokens[0], $configFile)) {
+                if (array_key_exists($tokens[1], $configFile[$tokens[0]])) {
+                    $argOnly = array_slice($argv, 2);
+                    $newArg = $argOnly + $configFile[$tokens[0]][$tokens[1]];
+                    $argv = array_unshift($newArg, $argv[0], $argv[1]);
+                }
+            }
+        }
+        return $argv;
+    }
+
 
     /**
      * @param $argv
      * @return ArgvInput
      */
     protected function prepareInput($argv)
+    {
+        //Merge the input with the config file
+        $argv = $this->mergeArgv($argv);
+
+        $argv = $this->prepareRoboInput($argv);
+
+        return new ArgvInput($argv);
+    }
+
+
+    protected function prepareRoboInput($argv)
     {
         $pos = array_search('--', $argv);
 
@@ -76,7 +108,7 @@ class Tg
             }
             unset($argv[$pos]);
         }
-        return new ArgvInput($argv);
+        return $argv;
     }
 
     protected function loadTxCommands()
@@ -97,7 +129,7 @@ class Tg
         require_once $this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE;
 
         if (!class_exists(Tg::TGCLASS)) {
-            $this->writeln("<error>Class " . $this->roboClass . " was not loaded</error>");
+            $this->output->writeln("<error>Class " . $this->roboClass . " was not loaded</error>");
             return false;
         }
         return true;
@@ -116,17 +148,18 @@ class Tg
         register_shutdown_function(array($this, 'shutdown'));
         set_error_handler(array($this, 'handleError'));
 
-
-        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
         $app = new Application('Tx', self::VERSION);
 
         if (!$this->loadTxCommands()) {
             $this->output->writeln("Tx is not initialized here. Will be initialized");
             $app->add(new Init('init'));
             $app->setDefaultCommand('tg:init');
+            $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
             $app->run($this->input, $this->output);
             return 0;
         }
+
+        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
 
         //Load our TxCommands file
         $this->addCommandsFromClass($app, Tg::TGCLASS, $this->passThroughArgs);
@@ -245,8 +278,9 @@ class Tg
         if (!is_array($error)) {
             return;
         }
-        $this->output->writeln(sprintf("<error>ERROR: %s \nin %s:%d\n</error>", $error['message'], $error['file'],
-            $error['line']));
+        $this->output->writeln(
+            sprintf("<error>ERROR: %s \nin %s:%d\n</error>", $error['message'], $error['file'], $error['line'])
+        );
     }
 
     public function handleError()

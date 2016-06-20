@@ -8,7 +8,8 @@
         }
     ],
     "require": {
-        "twhiston/twLib": "^1.1"
+        "twhiston/twLib": "^1.1",
+        "symfony/yaml": "^3.1"
     },
     "require-dev": {
         "codegyre/robo": "^0.7.2"

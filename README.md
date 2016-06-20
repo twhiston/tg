@@ -39,3 +39,26 @@ Simply create a file in your project root called tg.yml and enter your arguments
 phpunit:
     watch: ['arg','arg']
 ```
+
+Command line parameters always over-ride config file parameters (allowing easy changes) APART from excluding config file set options
+
+ie.
+your config file contains
+`hello:
+    person: ['tom','-s']
+`
+and you run the command
+`tg hello:person`
+
+the commands passed to the arg will be
+`tom -s`
+
+or 
+
+`tg hello:person billy`
+
+the commands passed to the arg will be
+`billy -s`
+
+you cannot override the last parameter in this case
+
