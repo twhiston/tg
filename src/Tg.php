@@ -40,6 +40,9 @@ class Tg
 
     protected $input;
 
+    /**
+     * @var string current working directory
+     */
     protected $dir;
 
     protected $passThroughArgs;
@@ -111,9 +114,10 @@ class Tg
         return $argv;
     }
 
-    protected function loadTxCommands()
+    protected function checkProjectInitialized()
     {
-
+        $initialized = false;
+        //This should always pass if the dir is the default cwd
         if (!file_exists($this->dir)) {
             $this->output->writeln("Path in `{$this->dir}` is invalid, please provide valid absolute path to load Robofile");
             return false;
@@ -122,14 +126,31 @@ class Tg
         $this->dir = realpath($this->dir);
         chdir($this->dir);
 
-        if (!file_exists($this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE)) {
-            return false;
+        //check for a command file.
+        if ($this->checkForTgFile()) {
+            if ($this->loadTxCommands()) {
+                $initialized = true;
+            } else {
+                $this->output->writeln("<error>Class " . Tg::TGCLASS . " was not loaded</error>");
+            }
         }
 
-        require_once $this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE;
+        return $initialized;
 
+    }
+
+    protected function checkForTgFile()
+    {
+        if (file_exists($this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE)) {
+            return true;
+        }
+        return false;
+    }
+
+    protected function loadTxCommands()
+    {
+        require_once $this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE;
         if (!class_exists(Tg::TGCLASS)) {
-            $this->output->writeln("<error>Class " . $this->roboClass . " was not loaded</error>");
             return false;
         }
         return true;
@@ -150,7 +171,7 @@ class Tg
 
         $app = new Application('Tx', self::VERSION);
 
-        if (!$this->loadTxCommands()) {
+        if (!$this->checkProjectInitialized()) {
             $this->output->writeln("Tx is not initialized here. Will be initialized");
             $app->add(new Init('init'));
             $app->setDefaultCommand('tg:init');
@@ -165,23 +186,36 @@ class Tg
         $this->addCommandsFromClass($app, Tg::TGCLASS, $this->passThroughArgs);
 
         //Load our core commands
-        $finder = new FindByNamespace(__DIR__);
-        $classes = $finder->find('tg\\RoboCommand');
-        foreach ($classes as $class) {
-            $this->addCommandsFromClass($app, $class, $this->passThroughArgs);
-        }
+        $this->addRoboCommands(__DIR__, $app);
+        $this->addSymfonyCommands(__DIR__, $app);
 
         //Load our autoloaded commands
-        $finder = new FindByNamespace($this->autoloader);
-        $classes = $finder->find('tg\\RoboCommand');
-        foreach ($classes as $class) {
-            $this->addCommandsFromClass($app, $class, $this->passThroughArgs);
-        }
+        $this->addRoboCommands($this->autoloader, $app);
+        $this->addSymfonyCommands($this->autoloader, $app);
 
         $app->setAutoExit(false);
         Config::setInput($this->input);
         Config::setOutput($this->output);
         return $app->run($this->input, $this->output);
+    }
+
+    protected function addRoboCommands($dir, $app)
+    {
+        //Load our core commands
+        $finder = new FindByNamespace($dir);
+        $classes = $finder->find('tg\\RoboCommand');
+        foreach ($classes as $class) {
+            $this->addCommandsFromClass($app, $class, $this->passThroughArgs);
+        }
+    }
+
+    protected function addSymfonyCommands($dir, $app)
+    {
+        $finder = new FindByNamespace($dir);
+        $classes = $finder->find('tg\\Command');
+        foreach ($classes as $class) {
+            $app->add(new $class);
+        }
     }
 
 

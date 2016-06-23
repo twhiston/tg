@@ -96,16 +96,16 @@
         },
         {
             "name": "twhiston/twlib",
-            "version": "1.1.4",
+            "version": "1.1.4.1",
             "source": {
                 "type": "git",
                 "url": "https://bitbucket.org/twhiston/twlib.git",
-                "reference": "3b5440b1a9a650b013f340a0e1be26fc712c04d6"
+                "reference": "fdc5d277c79be58de11065de86fe2b94b5dba304"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://bitbucket.org/twhiston/twlib/get/3b5440b1a9a650b013f340a0e1be26fc712c04d6.zip",
-                "reference": "3b5440b1a9a650b013f340a0e1be26fc712c04d6",
+                "url": "https://bitbucket.org/twhiston/twlib/get/fdc5d277c79be58de11065de86fe2b94b5dba304.zip",
+                "reference": "fdc5d277c79be58de11065de86fe2b94b5dba304",
                 "shasum": ""
             },
             "require": {
@@ -120,7 +120,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "description": "Some useful helper functions for PHP",
-            "time": "2016-06-18 16:46:39"
+            "time": "2016-06-23 20:49:07"
         }
     ],
     "packages-dev": [
