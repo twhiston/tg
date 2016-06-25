@@ -17,13 +17,13 @@ class PHPUnit extends Tasks
 
     use Watcher;
 
-    public function watch($path = null, $args = [])
+    public function watch($path,$unitArgs)
     {
-        $func = function () use ($args) {
+        $func = function () use ($unitArgs) {
             $this->yell('running unit tests');
-            $this->taskPhpUnit()->args($args)->run();
+            $this->taskPhpUnit()->args($unitArgs)->run();
         };
-        $this->startWatcher($func, $path, $args);
+        $this->startWatcher($func, $path, $unitArgs);
     }
 
 }

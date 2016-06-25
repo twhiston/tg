@@ -20,6 +20,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Yaml\Yaml;
 use TgCommands;
+use twhiston\tg\Argv\Merger;
 use twhiston\tg\Commands\Init;
 use twhiston\twLib\Discovery\FindByNamespace;
 
@@ -59,19 +60,15 @@ class Tg
 
     protected function mergeArgv($argv)
     {
+        $fileName = TgCommands::TGCONFIG . '.yml';
         //Merge our args with our config file
-        if (class_exists('TgCommands') && file_exists(TgCommands::TGCONFIG)) {
-            $configFile = Yaml::parse(file_get_contents(TgCommands::TGCONFIG));
-            //Tokenize the input and try to find the command name
-            $tokens = explode(':', $argv[1]);
+        if (class_exists('TgCommands') && file_exists($fileName)) {
+            $configFile = Yaml::parse(file_get_contents($fileName));
 
-            if (array_key_exists($tokens[0], $configFile)) {
-                if (array_key_exists($tokens[1], $configFile[$tokens[0]])) {
-                    $argOnly = array_slice($argv, 2);
-                    $newArg = $argOnly + $configFile[$tokens[0]][$tokens[1]];
-                    $argv = array_unshift($newArg, $argv[0], $argv[1]);
-                }
-            }
+            $merger = new Merger();
+            $merger->setArgs($argv, $configFile);
+            $argv = $merger->merge();
+
         }
         return $argv;
     }
@@ -94,12 +91,16 @@ class Tg
 
     protected function prepareRoboInput($argv)
     {
+        if (!is_array($argv)) {
+            return $argv;
+        }
         $pos = array_search('--', $argv);
 
         // cutting pass-through arguments
         if ($pos !== false) {
             $this->passThroughArgs = implode(' ', array_slice($argv, $pos + 1));
-            $argv = array_slice($argv, 0, $pos);
+            $argv = array_slice($argv, 0, $pos + 1);
+            $argv[$pos] = 'passthrough';//replace -- with a solid arg for the command, this will later be replaced by the passthroughs
         }
 
         // loading from other directory
@@ -194,8 +195,11 @@ class Tg
         $this->addSymfonyCommands($this->autoloader, $app);
 
         $app->setAutoExit(false);
+
+        //Set up the robo static config class
         Config::setInput($this->input);
         Config::setOutput($this->output);
+
         return $app->run($this->input, $this->output);
     }
 

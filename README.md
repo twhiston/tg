@@ -30,7 +30,7 @@ Like Robo you can also create a TgCommands.php file in your project root and the
 
 ## TODO 
 
-### Config Files
+## Config Files
 
 You might have commands that need config, folder names and arguments, but mostly these arguments dont change between projects and they are a pain to type.
 Simply create a file in your project root called tg.yml and enter your arguments. They should be in the form of
@@ -42,23 +42,13 @@ phpunit:
 
 Command line parameters always over-ride config file parameters (allowing easy changes) APART from excluding config file set options
 
-ie.
-your config file contains
-`hello:
-    person: ['tom','-s']
-`
-and you run the command
-`tg hello:person`
+## Pass Through Arguments
 
-the commands passed to the arg will be
-`tom -s`
+To pass through arguments to a command you must 
+- specify a replacement token
+- 
 
-or 
-
-`tg hello:person billy`
-
-the commands passed to the arg will be
-`billy -s`
-
-you cannot override the last parameter in this case
+ie
+If your command has the method signature `public function watch($path,$unitArgs)` where `$unitArgs` are the arguments to pass through to phpunit you would call the command like this
+`tg watch /path/to/watch unitArgs -- --configuration phpunit.xml.dist -- coverage clover`
 
