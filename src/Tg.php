@@ -167,8 +167,8 @@ class Tg
      */
     public function run($input = null)
     {
-        register_shutdown_function(array($this, 'shutdown'));
-        set_error_handler(array($this, 'handleError'));
+        register_shutdown_function([$this, 'shutdown']);
+        set_error_handler([$this, 'handleError']);
 
         $app = new Application('Tx', self::VERSION);
 
