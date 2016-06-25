@@ -69,7 +69,7 @@ class PHPUnit extends Tasks
                 $state = $this->processOutput($this->ask('blacklist'), $vars['blacklist']);
             } while ($state);
 
-            $vars['coverage_target'] = $this->askDefault('target', 'build/logs/phpunit');
+            $vars['target'] = $this->askDefault('target', 'build/logs/phpunit');
         }
 
         return $vars;
