@@ -57,7 +57,11 @@ class Conf extends Command
 
         $commands = $this->getApplication()->all();
 
-        $fileString = '';
+        $fileString = "# Tg Config File \n"
+            . "# args are keyed by id and should contain the value to be passed to the command\n"
+            . "# options are keyed by id and will be activated if set to 'true'\n"
+            . "# passthrough args are a numerically keyed array/sequence\n";
+
         $namespace = '';
         foreach ($commands as $command) {
             $def = $command->getDefinition();
