@@ -60,14 +60,17 @@ class Tg
 
     protected function mergeArgv($argv)
     {
-        $fileName = TgCommands::TGCONFIG . '.yml';
         //Merge our args with our config file
-        if (class_exists('TgCommands') && file_exists($fileName)) {
-            $configFile = Yaml::parse(file_get_contents($fileName));
+        if (class_exists('TgCommands')) {
+            $fileName = TgCommands::TGCONFIG . '.yml';
+            if (file_exists($fileName)) {
+                $configFile = Yaml::parse(file_get_contents($fileName));
 
-            $merger = new Merger();
-            $merger->setArgs($argv, $configFile);
-            $argv = $merger->merge();
+                $merger = new Merger();
+                $merger->setArgs($argv, $configFile);
+                $argv = $merger->merge();
+            }
+
 
         }
         return $argv;

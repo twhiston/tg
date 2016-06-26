@@ -56,8 +56,9 @@ class Init extends Command
             . "\n *"
             . "\n * @see http://robo.li/"
             . "\n */"
-            . "\nclass " . $txClass . " extends \\Robo\\Tasks\n{"
-            . "\n\n    const TGCONFIG = './tgconf.yml'; //Optional config file location"
+            . "\nuse twhiston\\tg\\Tasks\\TgTasks;\n"
+            . "\n/**\n* Class TgCommands\n*/"
+            . "\nclass " . $txClass . " extends TgTasks\n{"
             . "\n\n    // define public methods as commands"
             . "\n}"
         );
