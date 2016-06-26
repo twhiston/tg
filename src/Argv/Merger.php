@@ -34,14 +34,14 @@ class Merger implements MergerInterface
             $tokens = explode(':', $this->argv[1]);
             //check for the namespace
             if ($this->hasNamespace($tokens[0], $this->configFile)) {
-                if ($this->hasNamespace($tokens[1], $this->configFile[$tokens[0]])) {
-                    $extractedConfig = $this->processFromConfigFile($tokens);
-                    $argOnly = array_slice($this->argv, 2);
-                    //Prefer the args to the extracted content, which makes command line override of file possible
-                    $merged = $argOnly + $extractedConfig;
-                    array_unshift($merged, $this->argv[0], $this->argv[1]);//merge back in the script and command
-                    $output = $merged;
-                }
+                $extractedConfig = $this->processFromConfigFile($tokens);
+                $argOnly = array_slice($this->argv, 2);
+                //Prefer the args to the extracted content, which makes command line override of file possible
+                $merged = $argOnly + $extractedConfig;
+                //Remove nulls
+                $merged = array_filter($merged);
+                array_unshift($merged, $this->argv[0], $this->argv[1]);//merge back in the script and command
+                $output = $merged;
             }
         }
 
@@ -51,22 +51,28 @@ class Merger implements MergerInterface
     protected function processFromConfigFile($tokens)
     {
         //merge the 3 arrays in the config into an actual config array
-        $fileConfig = $this->configFile[$tokens[0]][$tokens[1]];
+        $fileConfig = (count($tokens) > 1) ? $this->configFile[$tokens[0]][$tokens[1]] : $this->configFile[$tokens[0]];
         $extractedConfig = [];
         foreach ($fileConfig as $key => $set) {
             if (is_array($set)) {
                 switch ($key) {
                     case "args":
                         foreach ($set as $item) {
-                            if ($item !== null) {
-                                $extractedConfig[] = $item;
-                            }
+                            $extractedConfig[] = $item;
                         }
                         break;
                     case "options":
                         foreach ($set as $okey => $oval) {
-                            if ($oval === true) {
-                                $extractedConfig[] = '--' . $okey;
+                            if ($oval !== null) {
+                                $write = '';
+                                if ($oval === true) {
+                                    $write = '--' . $okey;
+                                } else {
+                                    $write = '--' . $okey . '=' . $oval;
+                                }
+                                $extractedConfig[] = $write;
+                            } else {
+                                $extractedConfig[] = null;
                             }
                         }
                         break;

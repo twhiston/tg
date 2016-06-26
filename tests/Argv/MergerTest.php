@@ -26,7 +26,7 @@ class MergerTest extends \PHPUnit_Framework_TestCase
                     'options' =>
                         [
                             'raw' => null,
-                            'format' => null,
+                            'format' => 'xml',
                         ],
                     'pass' => null,
                 ],
@@ -44,6 +44,42 @@ class MergerTest extends \PHPUnit_Framework_TestCase
                         ],
                 ]
         ];
+    }
+
+    public function testOptionMerge()
+    {
+        //Argv with pass through arguments
+        $argv = [
+            '/Users/tom/Sites/_MyCode/PHP/twRobo/src/tg',
+            'list',
+        ];
+
+
+        $merger = new Merger();
+        $merger->setArgs($argv, $this->configfile);
+        $merged = $merger->merge();
+
+        $this->assertCount(3, $merged);
+        $this->assertEquals('--format=xml', $merged[2]);
+    }
+
+    public function testOptionMergeWithAdditional()
+    {
+        //Argv with pass through arguments
+        $argv = [
+            '/Users/tom/Sites/_MyCode/PHP/twRobo/src/tg',
+            'list',
+            '--raw'
+        ];
+
+
+        $merger = new Merger();
+        $merger->setArgs($argv, $this->configfile);
+        $merged = $merger->merge();
+
+        $this->assertCount(4, $merged);
+        $this->assertEquals('--raw', $merged[2]);
+        $this->assertEquals('--format=xml', $merged[3]);
     }
 
     /**
