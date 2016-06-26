@@ -13,17 +13,17 @@ class Merger implements MergerInterface
 {
 
     protected $argv;
-    protected $brgv;
+    protected $configFile;
 
     public function __construct()
     {
 
     }
 
-    public function setArgs(array $argv, array $brgv)
+    public function setArgs(array $argv, array $configFile)
     {
         $this->argv = $argv;
-        $this->brgv = $brgv;
+        $this->configFile = $configFile;
     }
 
     public function merge()
@@ -32,19 +32,57 @@ class Merger implements MergerInterface
         if (array_key_exists(1, $this->argv)) {
             //Tokenize the input and try to find the command name
             $tokens = explode(':', $this->argv[1]);
-
-            //TODO - fix this
-            if (array_key_exists($tokens[0], $this->brgv)) {
-                if (array_key_exists($tokens[1], $this->brgv[$tokens[0]])) {
+            //check for the namespace
+            if ($this->hasNamespace($tokens[0], $this->configFile)) {
+                if ($this->hasNamespace($tokens[1], $this->configFile[$tokens[0]])) {
+                    $extractedConfig = $this->processFromConfigFile($tokens);
                     $argOnly = array_slice($this->argv, 2);
-                    $newArg = $argOnly + $this->brgv[$tokens[0]][$tokens[1]];
-                    array_unshift($newArg, $this->argv[0], $this->argv[1]);
-                    $output = $newArg;
+                    //Prefer the args to the extracted content, which makes command line override of file possible
+                    $merged = $argOnly + $extractedConfig;
+                    array_unshift($merged, $this->argv[0], $this->argv[1]);//merge back in the script and command
+                    $output = $merged;
                 }
             }
         }
 
         return $output;
+    }
+
+    protected function processFromConfigFile($tokens)
+    {
+        //merge the 3 arrays in the config into an actual config array
+        $fileConfig = $this->configFile[$tokens[0]][$tokens[1]];
+        $extractedConfig = [];
+        foreach ($fileConfig as $key => $set) {
+            if (is_array($set)) {
+                switch ($key) {
+                    case "args":
+                        foreach ($set as $item) {
+                            if ($item !== null) {
+                                $extractedConfig[] = $item;
+                            }
+                        }
+                        break;
+                    case "options":
+                        foreach ($set as $okey => $oval) {
+                            if ($oval === true) {
+                                $extractedConfig[] = '--' . $okey;
+                            }
+                        }
+                        break;
+                    case "pass":
+                        $extractedConfig[] = '--';
+                        $extractedConfig = array_merge($extractedConfig, $set);
+                        break;
+                }
+            }
+        }
+        return $extractedConfig;
+    }
+
+    protected function hasNamespace($namespace, $args)
+    {
+        return array_key_exists($namespace, $args) ? true : false;
     }
 
 }

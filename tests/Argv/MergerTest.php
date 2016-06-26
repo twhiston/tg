@@ -40,13 +40,16 @@ class MergerTest extends \PHPUnit_Framework_TestCase
                                     'unitArgs' => null,
                                 ],
                             'options' => null,
-                            'pass' => null,
+                            'pass' => ["--configuration=phpunit.xml.dev"],
                         ],
                 ]
         ];
     }
 
-    public function testMerge()
+    /**
+     * In this instance the output should be the same as the input, as all the arguments are present in the argv, and it will override the config
+     */
+    public function testFullArgvSetMerge()
     {
         //Argv with pass through arguments
         $argv = [
@@ -61,10 +64,47 @@ class MergerTest extends \PHPUnit_Framework_TestCase
 
         $merger = new Merger();
         $merger->setArgs($argv, $this->configfile);
-        $argv = $merger->merge();
+        $merged = $merger->merge();
 
-        $this->assertArrayHasKey('phpunit',$argv);
+        $this->assertCount(6, $merged);
+        $this->assertEquals($argv, $merged);
+    }
+
+    public function testParticalArgvSetMerge()
+    {
+        //Argv with pass through arguments
+        $argv = [
+            '/Users/tom/Sites/_MyCode/PHP/twRobo/src/tg',
+            'phpunit:watch',
+            './vendor/bin',
+        ];
 
 
+        $merger = new Merger();
+        $merger->setArgs($argv, $this->configfile);
+        $merged = $merger->merge();
+
+        $this->assertCount(5, $merged);
+        $this->assertEquals("--", $merged[3]);
+        $this->assertEquals("--configuration=phpunit.xml.dev", $merged[4]);
+    }
+
+    public function testCommandOnlyArgvSetMerge()
+    {
+        //Argv with pass through arguments
+        $argv = [
+            '/Users/tom/Sites/_MyCode/PHP/twRobo/src/tg',
+            'phpunit:watch'
+        ];
+
+
+        $merger = new Merger();
+        $merger->setArgs($argv, $this->configfile);
+        $merged = $merger->merge();
+
+        $this->assertCount(5, $merged);
+        $this->assertEquals("/config/file/path", $merged[2]);
+        $this->assertEquals("--", $merged[3]);
+        $this->assertEquals("--configuration=phpunit.xml.dev", $merged[4]);
     }
 }

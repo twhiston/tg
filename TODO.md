@@ -8,6 +8,10 @@ Split commands into a separate library from the runner
 
 Fix merging
 
+# namespaces
+
+cache them as they take a while to load
+
 
 # Commands
 
