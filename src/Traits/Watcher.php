@@ -13,6 +13,8 @@ use Robo\Contract\CommandInterface;
 trait Watcher
 {
 
+    abstract function taskWatch();
+
     protected function startWatcher(callable $task, $path = null, $args = [])
     {
         //TODO remove this

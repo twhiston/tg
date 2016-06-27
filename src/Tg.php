@@ -77,6 +77,12 @@ class Tg
 
 
     /**
+     * @var Application
+     */
+    protected $app;
+
+
+    /**
      * Tg constructor.
      * @param $autoloader
      */
