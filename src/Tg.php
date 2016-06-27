@@ -21,7 +21,6 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Yaml\Yaml;
 use TgCommands;
 use twhiston\tg\Argv\Merger;
-use twhiston\tg\Commands\Init;
 use twhiston\twLib\Discovery\FindByNamespace;
 
 /**
@@ -31,14 +30,29 @@ use twhiston\twLib\Discovery\FindByNamespace;
 class Tg
 {
 
+    /**
+     * App Version
+     */
     const VERSION = '0.1.0';
 
+    /**
+     * Expected class for project specific Command file
+     */
     const TGCLASS = 'TgCommands';
 
+    /**
+     * Filename of project specific command files
+     */
     const TGFILE = Tg::TGCLASS . '.php';
 
+    /**
+     * @var ConsoleOutput
+     */
     protected $output;
 
+    /**
+     * @var InputInterface
+     */
     protected $input;
 
     /**
@@ -46,18 +60,118 @@ class Tg
      */
     protected $dir;
 
+    /**
+     * @var string pass through arguments sent to command, dealt with in a 'Robo' way
+     */
     protected $passThroughArgs;
 
+    /**
+     * @var Object Composer autoloader
+     */
     protected $autoloader;
 
+    /**
+     * @var FindByNamespace
+     */
+    protected $finder;
 
+
+    /**
+     * Tg constructor.
+     * @param $autoloader
+     */
     public function __construct($autoloader)
     {
         $this->output = new ConsoleOutput();
+        $this->finder = new FindByNamespace();
         $this->dir = getcwd();
         $this->autoloader = $autoloader;
+        //Start the app here as this gives the opportunity to add extra classes by calling the add methods before run
+        $this->app = new Application('Tg', self::VERSION);
     }
 
+    /**
+     * @param null $input Input
+     * @return int|void
+     * @throws \Exception
+     *
+     * Run tg and return an error code
+     */
+    public function run($input = null)
+    {
+        register_shutdown_function([$this, 'shutdown']);
+        set_error_handler([$this, 'handleError']);
+
+        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
+
+        if (!$this->checkProjectInitialized()) {
+            if ($this->input->getFirstArgument() !== 'tg:init') {
+                $this->output->writeln(
+                    "<comment>Tg is not initialized. run tg:init to create a project specific command file</comment>"
+                );
+            }
+        } else {
+            //Load our TxCommands file
+            $this->addCommandsFromClass(Tg::TGCLASS, $this->passThroughArgs);
+        }
+
+        //Load our core and autoloaded commands
+        $locations = [__DIR__, $this->autoloader];
+        foreach ($locations as $location) {
+            $this->addRoboCommands($location);
+            $this->addSymfonyCommands($location);
+        }
+
+        $this->app->setAutoExit(false);
+
+        //Set up the robo static config class :(
+        Config::setInput($this->input);
+        Config::setOutput($this->output);
+
+        return $this->app->run($this->input, $this->output);
+    }
+
+    /**
+     * @param $dir
+     */
+    public function addRoboCommands($dir)
+    {
+        //Load our core commands
+        $classes = $this->findClasses($dir, 'tg\\RoboCommand');
+        foreach ($classes as $class) {
+            $this->addCommandsFromClass($class, $this->passThroughArgs);
+        }
+    }
+
+    /**
+     * @param $dir
+     */
+    public function addSymfonyCommands($dir)
+    {
+        $classes = $this->findClasses($dir, 'tg\\Command');
+        foreach ($classes as $class) {
+            $this->app->add(new $class);
+        }
+    }
+
+    /**
+     * @param $argv
+     * @return ArgvInput
+     */
+    protected function prepareInput($argv)
+    {
+        //Merge the input with the config file
+        $argv = $this->mergeArgv($argv);
+
+        $argv = $this->prepareRoboInput($argv);
+
+        return new ArgvInput($argv);
+    }
+
+    /**
+     * @param $argv
+     * @return array
+     */
     protected function mergeArgv($argv)
     {
         //Merge our args with our config file
@@ -76,22 +190,10 @@ class Tg
         return $argv;
     }
 
-
     /**
      * @param $argv
-     * @return ArgvInput
+     * @return array
      */
-    protected function prepareInput($argv)
-    {
-        //Merge the input with the config file
-        $argv = $this->mergeArgv($argv);
-
-        $argv = $this->prepareRoboInput($argv);
-
-        return new ArgvInput($argv);
-    }
-
-
     protected function prepareRoboInput($argv)
     {
         if (!is_array($argv)) {
@@ -118,6 +220,9 @@ class Tg
         return $argv;
     }
 
+    /**
+     * @return bool
+     */
     protected function checkProjectInitialized()
     {
         $initialized = false;
@@ -143,6 +248,9 @@ class Tg
 
     }
 
+    /**
+     * @return bool
+     */
     protected function checkForTgFile()
     {
         if (file_exists($this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE)) {
@@ -151,6 +259,9 @@ class Tg
         return false;
     }
 
+    /**
+     * @return bool
+     */
     protected function loadTxCommands()
     {
         require_once $this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE;
@@ -160,78 +271,23 @@ class Tg
         return true;
     }
 
-
     /**
-     * @param null $input Input
-     * @return int|void
-     * @throws \Exception
-     *
-     * Run tg and return an error code
+     * @param $dir
+     * @param $namespace
+     * @return array
      */
-    public function run($input = null)
+    protected function findClasses($dir, $namespace)
     {
-        register_shutdown_function([$this, 'shutdown']);
-        set_error_handler([$this, 'handleError']);
-
-        $app = new Application('Tx', self::VERSION);
-
-        if (!$this->checkProjectInitialized()) {
-            $this->output->writeln("Tx is not initialized here. Will be initialized");
-            $app->add(new Init('init'));
-            $app->setDefaultCommand('tg:init');
-            $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
-            $app->run($this->input, $this->output);
-            return 0;
-        }
-
-        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
-
-        //Load our TxCommands file
-        $this->addCommandsFromClass($app, Tg::TGCLASS, $this->passThroughArgs);
-
-        //Load our core commands
-        $this->addRoboCommands(__DIR__, $app);
-        $this->addSymfonyCommands(__DIR__, $app);
-
-        //Load our autoloaded commands
-        $this->addRoboCommands($this->autoloader, $app);
-        $this->addSymfonyCommands($this->autoloader, $app);
-
-        $app->setAutoExit(false);
-
-        //Set up the robo static config class
-        Config::setInput($this->input);
-        Config::setOutput($this->output);
-
-        return $app->run($this->input, $this->output);
-    }
-
-    protected function addRoboCommands($dir, $app)
-    {
-        //Load our core commands
-        $finder = new FindByNamespace($dir);
-        $classes = $finder->find('tg\\RoboCommand');
-        foreach ($classes as $class) {
-            $this->addCommandsFromClass($app, $class, $this->passThroughArgs);
-        }
-    }
-
-    protected function addSymfonyCommands($dir, $app)
-    {
-        $finder = new FindByNamespace($dir);
-        $classes = $finder->find('tg\\Command');
-        foreach ($classes as $class) {
-            $app->add(new $class);
-        }
+        $this->finder->setPath($dir);
+        return $this->finder->find($namespace);
     }
 
 
     /**
-     * @param Application $app
      * @param $className
      * @param null $passThrough
      */
-    public function addCommandsFromClass(Application &$app, $className, $passThrough = null)
+    protected function addCommandsFromClass($className, $passThrough = null)
     {
         $roboTasks = new $className;
 
@@ -264,11 +320,16 @@ class Tg
                     exit($res->getExitCode());
                 }
             });
-            $app->add($command);
+            $this->app->add($command);
         }
     }
 
-    public function createCommand($className, TaskInfo $taskInfo)
+    /**
+     * @param $className
+     * @param TaskInfo $taskInfo
+     * @return Command
+     */
+    protected function createCommand($className, TaskInfo $taskInfo)
     {
 
         if ($className === strtolower(Tg::TGCLASS)) {
@@ -313,6 +374,9 @@ class Tg
         return $task;
     }
 
+    /**
+     *
+     */
     public function shutdown()
     {
         $error = error_get_last();
@@ -324,6 +388,9 @@ class Tg
         );
     }
 
+    /**
+     * @return bool
+     */
     public function handleError()
     {
         if (error_reporting() === 0) {
