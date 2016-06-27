@@ -23,12 +23,11 @@ This is where tg comes in, tg allows you to do 2 things
 
 ## Autoload Robo Commands
 
-If you place a command in a Namespace that contains `tg\RoboCommand` it will be autodetected and made available for use.
+If you place a class that extends twhiston\tg\TgTasks in a Namespace that contains `tg\RoboCommand` it will be autodetected and made available for use.
+If you place a class that extends Symfony\Component\Console\Command\Command in a Namespace that contains `tg\Command` it will be autodetected and made available for use.
 This means you can create a library of common commands, require it via composer in your project, and then call them immediately from tg
 
 Like Robo you can also create a TgCommands.php file in your project root and these project specific commands will also be made available
-
-## TODO 
 
 ## Config Files
 
@@ -37,18 +36,20 @@ Simply create a file in your project root called tg.yml and enter your arguments
 
 ```
 phpunit:
-    watch: ['arg','arg']
+    watch:
+        args:
+            path: ./tests/
+        options:
+        pass: "--configuration=phpunit.xml.dist --coverage=clover"
 ```
 
-Command line parameters always over-ride config file parameters (allowing easy changes) APART from excluding config file set options
+Command line parameters are merged with the config file before execution and always over-ride config file parameters
 
 ## Pass Through Arguments
 
-To pass through arguments to a command you must 
-- specify a replacement token
-- 
+You can pass through arguments to commands invoked by tg, just like robo simply add -- before your pass through arguments
 
 ie
 If your command has the method signature `public function watch($path,$unitArgs)` where `$unitArgs` are the arguments to pass through to phpunit you would call the command like this
-`tg watch /path/to/watch unitArgs -- --configuration phpunit.xml.dist -- coverage clover`
+`tg watch /path/to/watch unitArgs -- --configuration=phpunit.xml.dist -- coverage=clover`
 

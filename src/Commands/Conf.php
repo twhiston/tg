@@ -53,8 +53,6 @@ class Conf extends Command
         $output->writeln("<comment>  Add arguments to this config file to have them automatically merge in when running a command </comment>");
 
         //Build the list of commands and boilerplate them
-        xdebug_break();
-
         $commands = $this->getApplication()->all();
 
         $fileString = "# Tg Config File \n"
