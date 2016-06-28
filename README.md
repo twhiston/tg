@@ -4,7 +4,7 @@
 
 [![Build Status](https://scrutinizer-ci.com/b/twhiston/tg/badges/build.png?b=develop)](https://scrutinizer-ci.com/b/twhiston/tg/build-status/develop)
 
-https://codeship.com/projects/dad81810-1f95-0134-4034-46dd77d58334/status?branch=develop
+[ ![Codeship Status for twhiston/tg](https://codeship.com/projects/dad81810-1f95-0134-4034-46dd77d58334/status?branch=develop)](https://codeship.com/projects/160404)
 
 A command line runner for Robo
 
