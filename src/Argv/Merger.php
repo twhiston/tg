@@ -57,33 +57,47 @@ class Merger implements MergerInterface
             if (is_array($set)) {
                 switch ($key) {
                     case "args":
-                        foreach ($set as $item) {
-                            $extractedConfig[] = $item;
-                        }
+                        $this->processArgs($set, $extractedConfig);
                         break;
                     case "options":
-                        foreach ($set as $okey => $oval) {
-                            if ($oval !== null) {
-                                $write = '';
-                                if ($oval === true) {
-                                    $write = '--' . $okey;
-                                } else {
-                                    $write = '--' . $okey . '=' . $oval;
-                                }
-                                $extractedConfig[] = $write;
-                            } else {
-                                $extractedConfig[] = null;
-                            }
-                        }
+                        $this->processOptions($set, $extractedConfig);
                         break;
                     case "pass":
-                        $extractedConfig[] = '--';
-                        $extractedConfig = array_merge($extractedConfig, $set);
+                        $this->processPassThrough($set, $extractedConfig);
                         break;
                 }
             }
         }
         return $extractedConfig;
+    }
+
+    protected function processArgs($set, array &$config)
+    {
+        foreach ($set as $item) {
+            $config[] = $item;
+        }
+    }
+
+    protected function processOptions($set, array &$config)
+    {
+        foreach ($set as $okey => $oval) {
+            if ($oval !== null) {
+                if ($oval === true) {
+                    $write = '--' . $okey;
+                } else {
+                    $write = '--' . $okey . '=' . $oval;
+                }
+                $config[] = $write;
+            } else {
+                $config[] = null;
+            }
+        }
+    }
+
+    protected function processPassThrough($set, array &$config)
+    {
+        $config[] = '--';
+        $config = array_merge($config, $set);
     }
 
     protected function hasNamespace($namespace, $args)

@@ -22,7 +22,7 @@ class PHPUnit extends Tasks
             $this->yell('running unit tests');
             $this->taskPhpUnit()->args($unitArgs)->run();
         };
-        $this->startWatcher($func, $path, $unitArgs);
+        $this->startWatcher($func, $path);
     }
 
     public function generateXml()
