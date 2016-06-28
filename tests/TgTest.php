@@ -53,9 +53,7 @@ class TgTest extends \PHPUnit_Framework_TestCase
     {
         parent::__construct($name, $data, $dataName);
 
-        $this->vendorDir = substr($_SERVER['IDE_PHPUNIT_CUSTOM_LOADER'], 0,
-            strrpos($_SERVER['IDE_PHPUNIT_CUSTOM_LOADER'], '/')
-        );
+        $this->vendorDir = __DIR__ . '/../vendor';
 
     }
 
