@@ -18,6 +18,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 use TgCommands;
 use twhiston\tg\Argv\Merger;
@@ -46,7 +47,7 @@ class Tg
     const TGFILE = Tg::TGCLASS . '.php';
 
     /**
-     * @var ConsoleOutput
+     * @var OutputInterface
      */
     protected $output;
 
@@ -66,9 +67,9 @@ class Tg
     protected $passThroughArgs;
 
     /**
-     * @var Object Composer autoloader
+     * @var string
      */
-    protected $autoloader;
+    protected $vendorPath;
 
     /**
      * @var FindByNamespace
@@ -86,15 +87,25 @@ class Tg
      * Tg constructor.
      * @param $autoloader
      */
-    public function __construct($autoloader)
+    public function __construct($vendorPath)
     {
         $this->output = new ConsoleOutput();
         $this->finder = new FindByNamespace();
         $this->dir = getcwd();
-        $this->autoloader = $autoloader;
+        $this->vendorPath = $vendorPath;
         //Start the app here as this gives the opportunity to add extra classes by calling the add methods before run
         $this->app = new Application('Tg', self::VERSION);
     }
+
+    /**
+     * @param OutputInterface $output
+     */
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
+    }
+
+
 
     /**
      * @param null $input Input
@@ -122,7 +133,9 @@ class Tg
         }
 
         //Load our core and autoloaded commands
-        $locations = [__DIR__, $this->autoloader];
+        //we append the root namespace to this to make the search much faster
+        //only commands from the twhiston namespace will end up in core
+        $locations = [__DIR__, $this->vendorPath.'/twhiston'];
         foreach ($locations as $location) {
             $this->addRoboCommands($location);
             $this->addSymfonyCommands($location);
@@ -158,6 +171,11 @@ class Tg
         foreach ($classes as $class) {
             $this->app->add(new $class);
         }
+    }
+
+    public function getRegisteredCommands()
+    {
+        return $this->app->all();
     }
 
     /**
