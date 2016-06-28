@@ -1,5 +1,11 @@
 # tg
 
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/b/twhiston/tg/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/b/twhiston/tg/?branch=develop)
+
+[![Build Status](https://scrutinizer-ci.com/b/twhiston/tg/badges/build.png?b=develop)](https://scrutinizer-ci.com/b/twhiston/tg/build-status/develop)
+
+https://codeship.com/projects/dad81810-1f95-0134-4034-46dd77d58334/status?branch=develop
+
 A command line runner for Robo
 
 ## Why tg?
@@ -61,4 +67,3 @@ the commands passed to the arg will be
 `billy -s`
 
 you cannot override the last parameter in this case
-
