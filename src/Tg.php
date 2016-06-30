@@ -106,7 +106,6 @@ class Tg
     }
 
 
-
     /**
      * @param null $input Input
      * @return int|void
@@ -132,14 +131,13 @@ class Tg
             $this->addCommandsFromClass(Tg::TGCLASS, $this->passThroughArgs);
         }
 
-        //Load our core and autoloaded commands
-        //we append the root namespace to this to make the search much faster
-        //only commands from the twhiston namespace will end up in core
-        $locations = [__DIR__, $this->vendorPath.'/twhiston'];
-        foreach ($locations as $location) {
-            $this->addRoboCommands($location);
-            $this->addSymfonyCommands($location);
-        }
+        //Load our core commands that are a part of the app
+        $locations = [__DIR__, $this->vendorPath];
+        $this->loadCommandsFromClasses($locations);
+
+        //Load the dynamic paths
+        $locations = [$this->dir . '/vendor'];
+        $this->loadCommandsFromClasses($locations, true);
 
         $this->app->setAutoExit(false);
 
@@ -150,13 +148,39 @@ class Tg
         return $this->app->run($this->input, $this->output);
     }
 
+    public function loadCommandsFromClasses(array $locations, $bypassCache = false)
+    {
+        $classes = $this->getClasses('RoboCommand', $locations, $bypassCache);
+        $this->addRoboCommands($classes);
+
+        $classes = $this->getClasses('Command', $locations, $bypassCache);
+        $this->addSymfonyCommands($classes);
+    }
+
+    protected function getClasses($type, array $locations, $bypassCache = false)
+    {
+        $classes = null;
+        if (!$bypassCache) {
+            $classes = $this->hasCacheMap($type);
+        }
+        if (!$classes) {
+            $classes = [];
+            foreach ($locations as $location) {
+                $classes = array_merge($classes, $this->findClasses($location, 'tg\\' . $type));
+            }
+            if (!$bypassCache) {
+                $this->saveCacheMap($type, $classes);
+            }
+        }
+        return $classes;
+    }
+
     /**
      * @param $dir
      */
-    public function addRoboCommands($dir)
+    protected function addRoboCommands($classes)
     {
         //Load our core commands
-        $classes = $this->findClasses($dir, 'tg\\RoboCommand');
         foreach ($classes as $class) {
             $this->addCommandsFromClass($class, $this->passThroughArgs);
         }
@@ -165,12 +189,30 @@ class Tg
     /**
      * @param $dir
      */
-    public function addSymfonyCommands($dir)
+    protected function addSymfonyCommands($classes)
     {
-        $classes = $this->findClasses($dir, 'tg\\Command');
         foreach ($classes as $class) {
             $this->app->add(new $class);
         }
+    }
+
+    protected function hasCacheMap($cachename)
+    {
+        if (file_exists(__DIR__ . "/" . $cachename . 'CacheMap.yml')) {
+            return $this->getCacheMap($cachename);
+        }
+        return null;
+    }
+
+    private function getCacheMap($cachename)
+    {
+        return Yaml::parse(file_get_contents(__DIR__ . "/" . $cachename . 'CacheMap.yml'));
+    }
+
+    protected function saveCacheMap($cachename, $cachemap)
+    {
+        $yaml = Yaml::dump($cachemap);
+        file_put_contents(__DIR__ . "/" . $cachename . 'CacheMap.yml', $yaml);
     }
 
     public function getRegisteredCommands()

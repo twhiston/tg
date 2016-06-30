@@ -6,8 +6,9 @@
  * Time: 23:17
  */
 
-namespace twhiston\tg\Argv;
+namespace twhiston\tg\tests\Argv;
 
+use twhiston\tg\Argv\Merger;
 
 class MergerTest extends \PHPUnit_Framework_TestCase
 {

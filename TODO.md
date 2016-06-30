@@ -2,19 +2,14 @@
 
 # General
 
+Move map caching into its own class
+
 Split commands into a separate library from the runner
-
-#  Config File parser stuff
-
-Fix merging
-
-# namespaces
-
-cache them as they take a while to load
 
 
 # Commands
 
+- update core command cache
 - make sure including custom robo tasks still work properly across included robo files
 - proper phpunit runner stuff for watcher
 - git push stuff

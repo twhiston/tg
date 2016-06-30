@@ -84,24 +84,15 @@ class TgTest extends \PHPUnit_Framework_TestCase
     /**
      * Add some Robo commands
      */
-    public function testAddRoboCommands()
+    public function testloadCommandsFromClasses()
     {
         $tg = new Tg($this->vendorDir);
-        $tg->addRoboCommands(__DIR__ . '/assets');
+        $tg->loadCommandsFromClasses([__DIR__ . '/assets'], true);
         $commands = $tg->getRegisteredCommands();
         $this->assertArrayHasKey('robotest:watch-change', $commands);
-    }
-
-    /**
-     * Add some symfony commands
-     */
-    public function testAddCommands()
-    {
-        $tg = new Tg($this->vendorDir);
-        $tg->addSymfonyCommands(__DIR__ . '/assets');
-        $commands = $tg->getRegisteredCommands();
         $this->assertArrayHasKey('ctest:test', $commands);
     }
+
 
     /**
      * @outputBuffering enabled
@@ -111,18 +102,25 @@ class TgTest extends \PHPUnit_Framework_TestCase
         $tg = new Tg($this->vendorDir);
         $testOut = new TestOutput();
         $tg->setOutput($testOut);
-        $tg->addRoboCommands(__DIR__ . '/assets');
-        $tg->addSymfonyCommands(__DIR__ . '/assets');
+        $tg->loadCommandsFromClasses([__DIR__ . '/assets'], true);
         $tg->run(['tg', 'ctest:test']);
         $messages = $testOut->getMessages();
-        $this->assertEquals(
-            'Tg is not initialized. run tg:init to create a project specific command file',
-            $messages[0]
-        );
-        $this->assertEquals(
-            'Testing',
-            $messages[1]
-        );
+        if (count($messages) > 1) {
+            $this->assertEquals(
+                'Tg is not initialized. run tg:init to create a project specific command file',
+                $messages[0]
+            );
+            $this->assertEquals(
+                'Testing',
+                $messages[1]
+            );
+        } else {
+            $this->assertEquals(
+                'Testing',
+                $messages[0]
+            );
+        }
+
     }
 
 }
