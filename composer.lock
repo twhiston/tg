@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "d7b93a3bed7347ebe484292b0021290d",
-    "content-hash": "d79823fe85ccd925f2f5cd6679d38674",
+    "hash": "352acc93689d6380d36595ae57ec382a",
+    "content-hash": "cad0c1afb77b5e94c5aa0ee539589c3d",
     "packages": [
         {
             "name": "psr/log",
@@ -1869,32 +1869,6 @@
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
             "time": "2016-06-29 05:42:25"
-        },
-        {
-            "name": "twhiston/tg_lib_test",
-            "version": "0.1",
-            "source": {
-                "type": "git",
-                "url": "https://twhiston@bitbucket.org/twhiston/tg-lib-test.git",
-                "reference": "603f25bfa0960c2dc69390f08f29cc203c70ca67"
-            },
-            "require": {
-                "codegyre/robo": "^0.7.2"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "twhiston\\tg_lib_test\\": "src/"
-                }
-            },
-            "authors": [
-                {
-                    "name": "Thomas Whiston",
-                    "email": "tom.whiston@gmail.com"
-                }
-            ],
-            "description": "Test library for testing vendor dir autoloading",
-            "time": "2016-06-30 21:25:25"
         },
         {
             "name": "webmozart/assert",

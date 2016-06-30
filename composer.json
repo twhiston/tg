@@ -14,18 +14,11 @@
     },
     "require-dev": {
         "codegyre/robo": "^0.7.2",
-        "phpunit/phpunit": "^5.4",
-        "twhiston/tg_lib_test": "^0.1.0"
+        "phpunit/phpunit": "^5.4"
     },
     "autoload": {
         "psr-4" : {
             "twhiston\\tg\\" : "src"
         }
-    },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://twhiston@bitbucket.org/twhiston/tg-lib-test.git"
-        }
-    ]
+    }
 }
