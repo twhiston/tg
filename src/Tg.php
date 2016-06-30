@@ -135,9 +135,7 @@ class Tg
         $locations = [__DIR__, $this->vendorPath];
         $this->loadCommandsFromClasses($locations);
 
-        //Load the dynamic paths
-        $locations = [$this->dir . '/vendor'];
-        $this->loadCommandsFromClasses($locations, true);
+        $this->loadDynamicPaths();
 
         $this->app->setAutoExit(false);
 
@@ -146,6 +144,15 @@ class Tg
         Config::setOutput($this->output);
 
         return $this->app->run($this->input, $this->output);
+    }
+
+    protected function loadDynamicPaths()
+    {
+        //Load the dynamic paths
+        if (file_exists($this->dir . '/vendor')) {
+            $locations = [$this->dir . '/vendor'];
+            $this->loadCommandsFromClasses($locations, true);
+        }
     }
 
     public function loadCommandsFromClasses(array $locations, $bypassCache = false)
