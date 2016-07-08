@@ -12,6 +12,6 @@ namespace twhiston\tg\Tasks;
 abstract class TgTasks extends \Robo\Tasks
 {
 
-    const TGCONFIG = 'tgconf'; //Optional config file location
+    const TGCONFIG = 'tg'; //Optional config file location
 
 }

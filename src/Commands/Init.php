@@ -46,7 +46,7 @@ class Init extends Command
         $output->writeln("<comment>  ~~~ Welcome to Tg! ~~~~ </comment>");
         $output->writeln("<comment>  " . $filename . " will be created in current dir </comment>");
         $output->writeln("<comment>  You can also include any file in your project as a tg file by including tg\RoboCommand in the command namespace </comment>");
-        $output->writeln("<comment>  Add the file tgconf.yml and point to it from your TgCommands file to have argument options autoloaded </comment>");
+        $output->writeln("<comment>  Add the file tg.yml and point to it from your TgCommands file to have argument options autoloaded </comment>");
         file_put_contents(
             $filename,
             '<?php'

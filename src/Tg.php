@@ -84,6 +84,12 @@ class Tg
 
 
     /**
+     * @var string path to the cache folder, must be set via setCachePath() method to ensure directory exists
+     */
+    private $cachePath;
+
+
+    /**
      * Tg constructor.
      * @param $autoloader
      */
@@ -105,6 +111,17 @@ class Tg
         $this->output = $output;
     }
 
+    /**
+     * @param mixed $cachePath
+     */
+    public function setCachePath($cachePath)
+    {
+        if (!file_exists($cachePath)) {
+            mkdir($cachePath);
+        }
+        $this->cachePath = $cachePath;
+    }
+
 
     /**
      * @param null $input Input
@@ -118,15 +135,15 @@ class Tg
         register_shutdown_function([$this, 'shutdown']);
         set_error_handler([$this, 'handleError']);
 
+        if ($this->cachePath === null) {
+            $this->setCachePath(__DIR__ . "/../cache/");
+        }
+
+        $hasCommandFile = $this->autoloadCommandFile();
+
         $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
 
-        if (!$this->checkProjectInitialized()) {
-            if ($this->input->getFirstArgument() !== 'tg:init') {
-                $this->output->writeln(
-                    "<comment>Tg is not initialized. run tg:init to create a project specific command file</comment>"
-                );
-            }
-        } else {
+        if ($hasCommandFile) {
             //Load our TxCommands file
             $this->addCommandsFromClass(Tg::TGCLASS, $this->passThroughArgs);
         }
@@ -166,11 +183,11 @@ class Tg
 
     protected function getClasses($type, array $locations, $bypassCache = false)
     {
-        $classes = null;
+        $classes = [];
         if (!$bypassCache) {
             $classes = $this->hasCacheMap($type);
         }
-        if (!$classes) {
+        if (empty($classes)) {
             $classes = [];
             foreach ($locations as $location) {
                 $classes = array_merge($classes, $this->findClasses($location, 'tg\\' . $type));
@@ -205,7 +222,7 @@ class Tg
 
     protected function hasCacheMap($cachename)
     {
-        if (file_exists(__DIR__ . "/" . $cachename . 'CacheMap.yml')) {
+        if (file_exists($this->cachePath . $cachename . 'CacheMap.yml')) {
             return $this->getCacheMap($cachename);
         }
         return null;
@@ -213,13 +230,13 @@ class Tg
 
     private function getCacheMap($cachename)
     {
-        return Yaml::parse(file_get_contents(__DIR__ . "/" . $cachename . 'CacheMap.yml'));
+        return Yaml::parse(file_get_contents($this->cachePath . $cachename . 'CacheMap.yml'));
     }
 
     protected function saveCacheMap($cachename, $cachemap)
     {
         $yaml = Yaml::dump($cachemap);
-        file_put_contents(__DIR__ . "/" . $cachename . 'CacheMap.yml', $yaml);
+        file_put_contents($this->cachePath . $cachename . 'CacheMap.yml', $yaml);
     }
 
     public function getRegisteredCommands()
@@ -296,7 +313,7 @@ class Tg
     /**
      * @return bool
      */
-    protected function checkProjectInitialized()
+    protected function autoloadCommandFile()
     {
         $initialized = false;
         //This should always pass if the dir is the default cwd
