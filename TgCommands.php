@@ -1,8 +1,7 @@
 <?php
 /**
  * This is project's local console commands configuration for Tg Robo task runner.
- * Write this filoe the same as any Robo file
- *
+ * Write this file the same as any Robo file
  * @see http://robo.li/
  */
 
