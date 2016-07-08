@@ -22,7 +22,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 use TgCommands;
 use twhiston\tg\Argv\Merger;
-use twhiston\twLib\Discovery\FindByNamespace;
 
 /**
  * Class Tx
@@ -71,11 +70,6 @@ class Tg
      */
     protected $vendorPath;
 
-    /**
-     * @var FindByNamespace
-     */
-    protected $finder;
-
 
     /**
      * @var Application
@@ -84,9 +78,9 @@ class Tg
 
 
     /**
-     * @var string path to the cache folder, must be set via setCachePath() method to ensure directory exists
+     * @var ClassCache
      */
-    private $cachePath;
+    private $classCache;
 
 
     /**
@@ -96,11 +90,11 @@ class Tg
     public function __construct($vendorPath)
     {
         $this->output = new ConsoleOutput();
-        $this->finder = new FindByNamespace();
         $this->dir = getcwd();
         $this->vendorPath = $vendorPath;
         //Start the app here as this gives the opportunity to add extra classes by calling the add methods before run
         $this->app = new Application('Tg', self::VERSION);
+        $this->classCache = new ClassCache();
     }
 
     /**
@@ -116,10 +110,7 @@ class Tg
      */
     public function setCachePath($cachePath)
     {
-        if (!file_exists($cachePath)) {
-            mkdir($cachePath);
-        }
-        $this->cachePath = $cachePath;
+        $this->classCache->setCachePath($cachePath);
     }
 
 
@@ -135,10 +126,9 @@ class Tg
         register_shutdown_function([$this, 'shutdown']);
         set_error_handler([$this, 'handleError']);
 
-        if ($this->cachePath === null) {
-            $this->setCachePath(__DIR__ . "/../cache/");
+        if ($this->classCache->getCachePath() === null) {
+            $this->classCache->setCachePath(__DIR__ . "/../cache/");
         }
-
         $hasCommandFile = $this->autoloadCommandFile();
 
         $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
@@ -174,33 +164,16 @@ class Tg
 
     public function loadCommandsFromClasses(array $locations, $bypassCache = false)
     {
-        $classes = $this->getClasses('RoboCommand', $locations, $bypassCache);
+        $classes = $this->classCache->getClasses('RoboCommand', $locations, $bypassCache);
         $this->addRoboCommands($classes);
 
-        $classes = $this->getClasses('Command', $locations, $bypassCache);
+        $classes = $this->classCache->getClasses('Command', $locations, $bypassCache);
         $this->addSymfonyCommands($classes);
     }
 
-    protected function getClasses($type, array $locations, $bypassCache = false)
-    {
-        $classes = [];
-        if (!$bypassCache) {
-            $classes = $this->hasCacheMap($type);
-        }
-        if (empty($classes)) {
-            $classes = [];
-            foreach ($locations as $location) {
-                $classes = array_merge($classes, $this->findClasses($location, 'tg\\' . $type));
-            }
-            if (!$bypassCache) {
-                $this->saveCacheMap($type, $classes);
-            }
-        }
-        return $classes;
-    }
 
     /**
-     * @param $dir
+     * @param $classes string[] fully qualified namespace
      */
     protected function addRoboCommands($classes)
     {
@@ -211,32 +184,13 @@ class Tg
     }
 
     /**
-     * @param $dir
+     * @param $classes string[] fully qualified namespace
      */
     protected function addSymfonyCommands($classes)
     {
         foreach ($classes as $class) {
             $this->app->add(new $class);
         }
-    }
-
-    protected function hasCacheMap($cachename)
-    {
-        if (file_exists($this->cachePath . $cachename . 'CacheMap.yml')) {
-            return $this->getCacheMap($cachename);
-        }
-        return null;
-    }
-
-    private function getCacheMap($cachename)
-    {
-        return Yaml::parse(file_get_contents($this->cachePath . $cachename . 'CacheMap.yml'));
-    }
-
-    protected function saveCacheMap($cachename, $cachemap)
-    {
-        $yaml = Yaml::dump($cachemap);
-        file_put_contents($this->cachePath . $cachename . 'CacheMap.yml', $yaml);
     }
 
     public function getRegisteredCommands()
@@ -359,17 +313,6 @@ class Tg
             return false;
         }
         return true;
-    }
-
-    /**
-     * @param $dir
-     * @param $namespace
-     * @return array
-     */
-    protected function findClasses($dir, $namespace)
-    {
-        $this->finder->setPath($dir);
-        return $this->finder->find($namespace);
     }
 
 
