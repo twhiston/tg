@@ -22,6 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 use TgCommands;
 use twhiston\tg\Argv\Merger;
+use twhiston\twLib\Discovery\FindByNamespace;
 
 /**
  * Class Tx
@@ -131,11 +132,7 @@ class Tg
         }
 
         //Load our core commands that are a part of the app
-        $locations = [__DIR__, $this->vendorPath]; //__DIR__
-        print 'LOCATIONS' . PHP_EOL;
-        foreach ($locations as $location) {
-            print $location . PHP_EOL;
-        }
+        $locations = [__DIR__, $this->vendorPath];
         $this->loadCommandsFromClasses($locations);
 
         $this->loadDynamicPaths();
@@ -161,13 +158,9 @@ class Tg
     public function loadCommandsFromClasses(array $locations, $bypassCache = false)
     {
         $classes = $this->getClasses('RoboCommand', $locations, $bypassCache);
-//        print 'robo classes:' . PHP_EOL;
-//        print_r($classes);
         $this->addRoboCommands($classes);
 
         $classes = $this->getClasses('Command', $locations, $bypassCache);
-//        print 'command classes:' . PHP_EOL;
-//        print_r($classes);
         $this->addSymfonyCommands($classes);
     }
 
@@ -175,7 +168,6 @@ class Tg
     {
         $classes = [];
         if (!$bypassCache) {
-            print 'has cache map' . PHP_EOL;
             $classes = $this->hasCacheMap($type);
         }
         if (empty($classes)) {
