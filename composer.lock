@@ -583,16 +583,16 @@
         },
         {
             "name": "twhiston/twlib",
-            "version": "1.1.4.2",
+            "version": "1.1.4.5",
             "source": {
                 "type": "git",
                 "url": "https://bitbucket.org/twhiston/twlib.git",
-                "reference": "680ea21ea2d5f780ed29fd8ec262f2a623f4d77f"
+                "reference": "ac3c5f9304e6357db2d4d4fb5b93bb33baf57f21"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://bitbucket.org/twhiston/twlib/get/680ea21ea2d5f780ed29fd8ec262f2a623f4d77f.zip",
-                "reference": "680ea21ea2d5f780ed29fd8ec262f2a623f4d77f",
+                "url": "https://bitbucket.org/twhiston/twlib/get/ac3c5f9304e6357db2d4d4fb5b93bb33baf57f21.zip",
+                "reference": "ac3c5f9304e6357db2d4d4fb5b93bb33baf57f21",
                 "shasum": ""
             },
             "require": {
@@ -607,7 +607,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "description": "Some useful helper functions for PHP",
-            "time": "2016-06-27 21:20:56"
+            "time": "2016-07-08 20:08:20"
         },
         {
             "name": "twig/twig",

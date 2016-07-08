@@ -6,17 +6,21 @@
  */
 $vendor = '';
 if (strpos(basename(__FILE__), 'phar')) {
+    print "strpos(basename(__FILE__), 'phar'))" . PHP_EOL;
     $vendor = 'phar://tg.phar/vendor';
-    require_once $vendor . '/autoload.php';
+
 } else {
+    //TODO - will this fail if we run tg from a dir that matches this pattern?
     if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+        print "file_exists(__DIR__ . '/../vendor/autoload.php')" . PHP_EOL;
         $vendor = __DIR__ . '/../vendor';
-        require_once $vendor . '/autoload.php';
     } else {
+        print "*** ELSE ***" . PHP_EOL;
         $vendor = 'phar://tg.phar/vendor';
-        require_once $vendor . '/autoload.php';
     }
 }
+require_once $vendor . '/autoload.php';
+print 'LOADER: ' . $vendor . PHP_EOL;
 $runner = new \twhiston\tg\Tg($vendor);
 $exitCode = $runner->run();
 exit($exitCode);
