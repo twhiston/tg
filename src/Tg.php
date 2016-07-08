@@ -118,8 +118,6 @@ class Tg
         register_shutdown_function([$this, 'shutdown']);
         set_error_handler([$this, 'handleError']);
 
-        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
-
         if (!$this->checkProjectInitialized()) {
             if ($this->input->getFirstArgument() !== 'tg:init') {
                 $this->output->writeln(
@@ -130,6 +128,8 @@ class Tg
             //Load our TxCommands file
             $this->addCommandsFromClass(Tg::TGCLASS, $this->passThroughArgs);
         }
+
+        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
 
         //Load our core commands that are a part of the app
         $locations = [__DIR__, $this->vendorPath];
