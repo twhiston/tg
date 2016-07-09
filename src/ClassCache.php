@@ -29,6 +29,7 @@ class ClassCache
      */
     protected $finder;
 
+
     public function __construct()
     {
         $this->finder = new FindByNamespace();
@@ -40,8 +41,17 @@ class ClassCache
      */
     public function setCachePath($cachePath)
     {
+        $cachePath = $this->sanitizePath($cachePath);
         $this->makeCacheDirectory($cachePath);
         $this->cachePath = $cachePath;
+    }
+
+    private function sanitizePath($cachePath)
+    {
+        if (substr($cachePath, -1) !== '/') {
+            $cachePath .= '/';
+        }
+        return $cachePath;
     }
 
     /**
@@ -50,19 +60,6 @@ class ClassCache
     public function getCachePath()
     {
         return $this->cachePath;
-    }
-
-    /**
-     * @param $cachePath string
-     * @throws Exception
-     */
-    protected function makeCacheDirectory($cachePath)
-    {
-        if (!file_exists($cachePath)) {
-            if (mkdir($cachePath) === false) {
-                throw new Exception('could not create cache path');
-            }
-        }
     }
 
     public function getClasses($classPattern, array $locations, $bypassCache = false)
@@ -84,6 +81,28 @@ class ClassCache
         return $classes;
     }
 
+    public function clearCache(array $caches)
+    {
+        foreach ($caches as $cache) {
+            if ($this->hasCacheMap($cache)) {
+                unlink($this->cachePath . $cache . 'CacheMap.yml');
+            }
+        }
+    }
+
+    /**
+     * @param $cachePath string
+     * @throws Exception
+     */
+    protected function makeCacheDirectory($cachePath)
+    {
+        if (!file_exists($cachePath)) {
+            if (mkdir($cachePath) === false) {
+                throw new Exception('could not create cache path');
+            }
+        }
+    }
+
     protected function hasCacheMap($cachename)
     {
         if (file_exists($this->cachePath . $cachename . 'CacheMap.yml')) {
@@ -92,15 +111,15 @@ class ClassCache
         return null;
     }
 
-    private function getCacheMap($cachename)
-    {
-        return Yaml::parse(file_get_contents($this->cachePath . $cachename . 'CacheMap.yml'));
-    }
-
     protected function saveCacheMap($cachename, $cachemap)
     {
         $yaml = Yaml::dump($cachemap);
         file_put_contents($this->cachePath . $cachename . 'CacheMap.yml', $yaml);
+    }
+
+    private function getCacheMap($cachename)
+    {
+        return Yaml::parse(file_get_contents($this->cachePath . $cachename . 'CacheMap.yml'));
     }
 
     /**
