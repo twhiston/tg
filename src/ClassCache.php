@@ -65,19 +65,20 @@ class ClassCache
         }
     }
 
-    public function getClasses($type, array $locations, $bypassCache = false)
+    public function getClasses($classPattern, array $locations, $bypassCache = false)
     {
         $classes = [];
+        $sanitized = preg_replace("/[^A-Za-z0-9 ]/", '', $classPattern);
         if (!$bypassCache) {
-            $classes = $this->hasCacheMap($type);
+            $classes = $this->hasCacheMap($sanitized);
         }
         if (empty($classes)) {
             $classes = [];
             foreach ($locations as $location) {
-                $classes = array_merge($classes, $this->findClasses($location, 'tg\\' . $type));
+                $classes = array_merge($classes, $this->findClasses($location, 'tg\\' . $classPattern));
             }
             if (!$bypassCache) {
-                $this->saveCacheMap($type, $classes);
+                $this->saveCacheMap($sanitized, $classes);
             }
         }
         return $classes;
