@@ -65,14 +65,15 @@ class CommandLoader
 
                 $res = call_user_func_array([$roboTasks, $commandName], $args);
                 if (is_int($res)) {
-                    exit($res);
+                    return $res;
                 }
                 if (is_bool($res)) {
-                    exit($res ? 0 : 1);
+                    return $res ? 0 : 1;
                 }
                 if ($res instanceof Result) {
-                    exit($res->getExitCode());
+                    return $res->getExitCode();
                 }
+                return 0;
             });
             $this->app->add($command);
         }
