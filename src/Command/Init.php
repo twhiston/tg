@@ -6,7 +6,7 @@
  * Time: 16:54
  */
 
-namespace twhiston\tg\Commands;
+namespace twhiston\tg\Command;
 
 
 use Symfony\Component\Console\Command\Command;

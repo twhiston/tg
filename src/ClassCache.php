@@ -8,7 +8,6 @@
 
 namespace twhiston\tg;
 
-
 use Exception;
 use Symfony\Component\Yaml\Yaml;
 use twhiston\twLib\Discovery\FindByNamespace;
