@@ -87,7 +87,7 @@ class TgTest extends \PHPUnit_Framework_TestCase
     public function testloadCommandsFromClasses()
     {
         $tg = new Tg($this->vendorDir);
-        $tg->loadCommandsFromClasses([__DIR__ . '/assets'], true);
+        $tg->addCommandsFromPaths([__DIR__ . '/assets']);
         $commands = $tg->getRegisteredCommands();
         $this->assertArrayHasKey('robotest:watch-change', $commands);
         $this->assertArrayHasKey('ctest:test', $commands);
@@ -102,7 +102,7 @@ class TgTest extends \PHPUnit_Framework_TestCase
         $tg = new Tg($this->vendorDir);
         $testOut = new TestOutput();
         $tg->setOutput($testOut);
-        $tg->loadCommandsFromClasses([__DIR__ . '/assets'], true);
+        $tg->addCommandsFromPaths([__DIR__ . '/assets']);
         $tg->run(['tg', 'ctest:test']);
         $messages = $testOut->getMessages();
         if (count($messages) > 1) {

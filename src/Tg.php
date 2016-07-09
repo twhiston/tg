@@ -159,6 +159,11 @@ class Tg
         }
     }
 
+    public function addCommandsFromPaths(array $paths)
+    {
+        $commandLoader = new CommandLoader($this->app, $this->classCache);
+        $commandLoader->loadCommandsFromClasses($paths, true);
+    }
 
     public function getRegisteredCommands()
     {
