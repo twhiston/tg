@@ -13,7 +13,7 @@ A command line runner for Robo
 Why not? in truth because t and g are well placed to type on lots of keyboard layouts,
 but in particular on Workman, which you should check out http://www.workmanlayout.com/blog/
 
-But lets pretend it stands for something cool like 'Task Go', 'Terminator Genisys' or 'Throbbing Gristle'
+But lets pretend it stands for something cool like 'Task Go', 'Terminator Genisys', 'Torture Garden' or 'Throbbing Gristle'
 
 ## What does it do?
 

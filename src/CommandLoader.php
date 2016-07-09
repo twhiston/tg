@@ -16,6 +16,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Class CommandLoader
@@ -35,25 +36,53 @@ class CommandLoader
         $this->classCache = $classCache;
     }
 
+    protected function createClass($namespace)
+    {
+
+        if (!class_exists($namespace, true)) {
+            //If the class doesnt exist then its not in our own vendor dir
+            //So we need to find it ourselves in the local vendor dir
+            $this->findAndInclude($namespace);
+        }
+        return new $namespace;
+    }
+
+    private function findAndInclude($namespace)
+    {
+        $finder = new Finder();
+        $namespaceParts = explode('\\', $namespace);
+        $class = array_pop($namespaceParts);
+        $finder->name($class . '.php');
+        $finder->in(getcwd() . '/vendor');//local vendor dir
+        if (iterator_count($finder) === 0) {
+            throw new \Exception('Cannot find detected class');
+        }
+        foreach ($finder as $file) {
+            if ($file->isFile()) {
+                include_once $file->getRealPath();
+            }
+        }
+    }
+
 
     /**
-     * @param $className
+     * @param $namespace
      * @param $app
      * @param null $passThrough
      */
-    public function addCommandsFromClass($className, $passThrough = null)
+    public function addCommandsFromClass($namespace, $passThrough = null)
     {
-        $roboTasks = new $className;
+        $roboTasks = $this->createClass($namespace);
 
-        $commandNames = array_filter(get_class_methods($className), function ($m) {
+        $commandNames = array_filter(get_class_methods($namespace), function ($m) {
             return !in_array($m, ['__construct']);
         });
 
         foreach ($commandNames as $commandName) {
-            $classParts = explode('\\', $className);
+            $classParts = explode('\\', $namespace);
             $final = array_pop($classParts);
             $cleanName = strtolower($final);
-            $command = $this->createCommand($cleanName, new TaskInfo($className, $commandName));
+            $command = $this->createCommand($cleanName, new TaskInfo($namespace, $commandName));
             $command->setCode(function (InputInterface $input) use ($roboTasks, $commandName, $passThrough) {
                 // get passthru args
                 $args = $input->getArguments();
