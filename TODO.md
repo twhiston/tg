@@ -2,10 +2,7 @@
 
 # General
 
-Move map caching into its own class
-
-Split commands into a separate library from the runner
-
+Make init and conf file writing safe, and give them an option to force replace the old file
 
 # Commands
 
@@ -18,4 +15,3 @@ Split commands into a separate library from the runner
 - drush wrapper
 - drupal console wrapper
 - symfony command detection
-- conf file generator
