@@ -2,7 +2,8 @@
 
 A command line runner for Robo
 
-MASTER
+## MASTER
+
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/b/twhiston/tg/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/b/twhiston/tg/?branch=master)
 
 [![Build Status](https://scrutinizer-ci.com/b/twhiston/tg/badges/build.png?b=master)](https://scrutinizer-ci.com/b/twhiston/tg/build-status/master)
@@ -10,7 +11,8 @@ MASTER
 [ ![Codeship Status for twhiston/tg](https://codeship.com/projects/dad81810-1f95-0134-4034-46dd77d58334/status?branch=master)](https://codeship.com/projects/160404)
 
 
-DEVELOP
+## DEVELOP
+
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/b/twhiston/tg/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/b/twhiston/tg/?branch=develop)
 
 [![Build Status](https://scrutinizer-ci.com/b/twhiston/tg/badges/build.png?b=develop)](https://scrutinizer-ci.com/b/twhiston/tg/build-status/develop)
@@ -19,7 +21,7 @@ DEVELOP
 
 ## Install
 
-Download a phar
+Download a phar [https://bitbucket.org/twhiston/tg/downloads/tg.phar](Link URL)
 
 or clone the source and run 
 ```
@@ -91,4 +93,3 @@ You can pass through arguments to commands invoked by tg, just like robo simply 
 ie
 If your command has the method signature `public function watch($path,$unitArgs)` where `$unitArgs` are the arguments to pass through to phpunit you would call the command like this
 `tg watch /path/to/watch unitArgs -- --configuration=phpunit.xml.dist -- coverage=clover`
-
