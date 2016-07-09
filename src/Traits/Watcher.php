@@ -9,11 +9,8 @@
 namespace twhiston\tg\Traits;
 
 
-
 trait Watcher
 {
-
-    abstract public function taskWatch();
 
     protected function startWatcher(callable $task, $path = __DIR__)
     {
@@ -23,5 +20,7 @@ trait Watcher
         }
         $this->taskWatch()->monitor($path, $task)->run();
     }
+
+    abstract public function taskWatch();
 
 }

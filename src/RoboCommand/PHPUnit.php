@@ -29,7 +29,7 @@ class PHPUnit extends Tasks
     {
         $vars = $this->getVars();
 
-        $filename = 'phpunit.xml.'.$vars['environment'];
+        $filename = 'phpunit.xml.' . $vars['environment'];
         $filepath = getcwd() . '/';
         $saveLocation = $filepath . $filename;
 

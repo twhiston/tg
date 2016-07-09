@@ -8,23 +8,21 @@
 
 namespace twhiston\tg\RoboCommand;
 
-use Robo\Tasks;
-
 
 class Test extends \Robo\Tasks
 {
 
     public function watchChange()
     {
-        $this->taskWatch()->monitor(__DIR__.'/../../composer.json', function() {
+        $this->taskWatch()->monitor(__DIR__ . '/../../composer.json', function () {
             $this->yell('suck it philly');
         })->run();
 
     }
 
-    public function yourself($name,$opts = ['silent|s' => false])
+    public function yourself($name, $opts = ['silent|s' => false])
     {
-        if($opts['silent'] === TRUE){
+        if ($opts['silent'] === true) {
             $this->yell("SHHHHHHHH!!!!!!!");
         }
         $this->yell("go fuck yourself {$name}");

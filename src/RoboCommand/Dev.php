@@ -29,6 +29,41 @@ class Dev extends Tasks
     }
 
     /**
+     * @return mixed
+     *
+     * Get the current version number and yell it
+     */
+    public function ver()
+    {
+        $version = $this->getVersion();
+        $this->yell('Current Version: ' . $version);
+        return $version;
+    }
+
+    /**
+     * @return mixed current version number
+     */
+    protected function getVersion()
+    {
+        $path = __DIR__ . '/.semver';
+        return $this->taskSemVer($path)->__toString();
+    }
+
+    /**
+     * @param $version
+     *
+     * Writes changes to the log and bumps the version number if necessary
+     */
+    protected function doChange($version)
+    {
+
+        $this->taskChangelog()
+            ->version($version)
+            ->askForChanges()
+            ->run();
+    }
+
+    /**
      * bump the version number and add changes to the log
      * @throws \Robo\Exception\TaskException
      */
@@ -48,27 +83,6 @@ class Dev extends Tasks
     }
 
     /**
-     * @return mixed
-     *
-     * Get the current version number and yell it
-     */
-    public function ver()
-    {
-        $version = $this->getVersion();
-        $this->yell('Current Version: '.$version);
-        return $version;
-    }
-
-    /**
-     * @return mixed current version number
-     */
-    protected function getVersion()
-    {
-        $path = __DIR__ . '/.semver';
-        return $this->taskSemVer($path)->__toString();
-    }
-
-    /**
      * @param $path
      * make the semver file
      */
@@ -82,20 +96,6 @@ class Dev extends Tasks
             ":special: ''",
             ":metadata: ''"
         ])->run();
-    }
-
-    /**
-     * @param $version
-     *
-     * Writes changes to the log and bumps the version number if necessary
-     */
-    protected function doChange($version)
-    {
-
-        $this->taskChangelog()
-            ->version($version)
-            ->askForChanges()
-            ->run();
     }
 
 }

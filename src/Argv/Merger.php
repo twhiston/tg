@@ -48,6 +48,11 @@ class Merger implements MergerInterface
         return $output;
     }
 
+    protected function hasNamespace($namespace, $args)
+    {
+        return array_key_exists($namespace, $args) ? true : false;
+    }
+
     protected function processFromConfigFile($tokens)
     {
         //merge the 3 arrays in the config into an actual config array
@@ -98,11 +103,6 @@ class Merger implements MergerInterface
     {
         $config[] = '--';
         $config = array_merge($config, $set);
-    }
-
-    protected function hasNamespace($namespace, $args)
-    {
-        return array_key_exists($namespace, $args) ? true : false;
     }
 
 }
