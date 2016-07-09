@@ -7,16 +7,15 @@
 $vendor = '';
 if (strpos(basename(__FILE__), 'phar')) {
     $vendor = 'phar://tg.phar/vendor';
-    require_once $vendor . '/autoload.php';
 } else {
+    //TODO - will this fail if we run tg from a dir that matches this pattern?
     if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
         $vendor = __DIR__ . '/../vendor';
-        require_once $vendor . '/autoload.php';
     } else {
         $vendor = 'phar://tg.phar/vendor';
-        require_once $vendor . '/autoload.php';
     }
 }
+require_once $vendor . '/autoload.php';
 $runner = new \twhiston\tg\Tg($vendor);
 $exitCode = $runner->run();
 exit($exitCode);

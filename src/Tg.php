@@ -9,19 +9,14 @@
 namespace twhiston\tg;
 
 use Robo\Config;
-use Robo\Result;
-use Robo\TaskInfo;
 use Symfony\Component\Console\Application;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArgvInput;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 use TgCommands;
-use twhiston\tg\Commands\Init;
-use twhiston\twLib\Discovery\FindByNamespace;
+use twhiston\tg\Argv\Merger;
 
 /**
  * Class Tx
@@ -30,14 +25,29 @@ use twhiston\twLib\Discovery\FindByNamespace;
 class Tg
 {
 
+    /**
+     * App Version
+     */
     const VERSION = '0.1.0';
 
+    /**
+     * Expected class for project specific Command file
+     */
     const TGCLASS = 'TgCommands';
 
+    /**
+     * Filename of project specific command files
+     */
     const TGFILE = Tg::TGCLASS . '.php';
 
+    /**
+     * @var OutputInterface
+     */
     protected $output;
 
+    /**
+     * @var InputInterface
+     */
     protected $input;
 
     /**
@@ -45,37 +55,120 @@ class Tg
      */
     protected $dir;
 
+    /**
+     * @var string pass through arguments sent to command, dealt with in a 'Robo' way
+     */
     protected $passThroughArgs;
 
-    protected $autoloader;
+    /**
+     * @var string
+     */
+    protected $vendorPath;
 
 
-    public function __construct($autoloader)
+    /**
+     * @var Application
+     */
+    protected $app;
+
+
+    /**
+     * @var ClassCache
+     */
+    private $classCache;
+
+
+    /**
+     * Tg constructor.
+     * @param $autoloader
+     */
+    public function __construct($vendorPath)
     {
         $this->output = new ConsoleOutput();
         $this->dir = getcwd();
-        $this->autoloader = $autoloader;
+        $this->vendorPath = $vendorPath;
+        //Start the app here as this gives the opportunity to add extra classes by calling the add methods before run
+        $this->app = new Application('Tg', self::VERSION);
+        $this->classCache = new ClassCache();
     }
 
-    protected function mergeArgv($argv)
+    /**
+     * @param OutputInterface $output
+     */
+    public function setOutput(OutputInterface $output)
     {
-        //Merge our args with our config file
-        if (class_exists('TgCommands') && file_exists(TgCommands::TGCONFIG)) {
-            $configFile = Yaml::parse(file_get_contents(TgCommands::TGCONFIG));
-            //Tokenize the input and try to find the command name
-            $tokens = explode(':', $argv[1]);
-
-            if (array_key_exists($tokens[0], $configFile)) {
-                if (array_key_exists($tokens[1], $configFile[$tokens[0]])) {
-                    $argOnly = array_slice($argv, 2);
-                    $newArg = $argOnly + $configFile[$tokens[0]][$tokens[1]];
-                    $argv = array_unshift($newArg, $argv[0], $argv[1]);
-                }
-            }
-        }
-        return $argv;
+        $this->output = $output;
     }
 
+    /**
+     * @param mixed $cachePath
+     */
+    public function setCachePath($cachePath)
+    {
+        $this->classCache->setCachePath($cachePath);
+    }
+
+
+    /**
+     * @param null $input Input
+     * @return int|void
+     * @throws \Exception
+     *
+     * Run tg and return an error code
+     */
+    public function run($input = null)
+    {
+        register_shutdown_function([$this, 'shutdown']);
+        set_error_handler([$this, 'handleError']);
+
+        if ($this->classCache->getCachePath() === null) {
+            $this->classCache->setCachePath(__DIR__ . "/../cache/");
+        }
+        $hasCommandFile = $this->autoloadCommandFile();
+
+        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
+
+        $commandLoader = new CommandLoader($this->app, $this->classCache);
+
+        if ($hasCommandFile) {
+            //Load our TxCommands file
+            $commandLoader->addCommandsFromClass(Tg::TGCLASS, $this->passThroughArgs);
+        }
+
+        //Load our core commands that are a part of the app
+        $locations = [__DIR__, $this->vendorPath];
+        $commandLoader->loadCommandsFromClasses($locations);
+
+        $this->loadDynamicPaths($commandLoader);
+
+        $this->app->setAutoExit(false);
+
+        //Set up the robo static config class :(
+        Config::setInput($this->input);
+        Config::setOutput($this->output);
+
+        return $this->app->run($this->input, $this->output);
+    }
+
+    protected function loadDynamicPaths(CommandLoader $commandLoader)
+    {
+        //Load the dynamic paths
+        if (file_exists($this->dir . '/vendor')) {
+            $locations = [$this->dir . '/vendor'];
+            $commandLoader->loadCommandsFromClasses($locations, true);
+        }
+    }
+
+    public function addCommandsFromPaths(array $paths)
+    {
+        $commandLoader = new CommandLoader($this->app, $this->classCache);
+        $commandLoader->loadCommandsFromClasses($paths, true);
+    }
+
+    public function getRegisteredCommands()
+    {
+        return $this->app->all();
+    }
 
     /**
      * @param $argv
@@ -91,15 +184,44 @@ class Tg
         return new ArgvInput($argv);
     }
 
+    /**
+     * @param $argv
+     * @return array
+     */
+    protected function mergeArgv($argv)
+    {
+        //Merge our args with our config file
+        if (class_exists('TgCommands')) {
+            $fileName = TgCommands::TGCONFIG . '.yml';
+            if (file_exists($fileName)) {
+                $configFile = Yaml::parse(file_get_contents($fileName));
 
+                $merger = new Merger();
+                $merger->setArgs($argv, $configFile);
+                $argv = $merger->merge();
+            }
+
+
+        }
+        return $argv;
+    }
+
+    /**
+     * @param $argv
+     * @return array
+     */
     protected function prepareRoboInput($argv)
     {
+        if (!is_array($argv)) {
+            return $argv;
+        }
         $pos = array_search('--', $argv);
 
         // cutting pass-through arguments
         if ($pos !== false) {
             $this->passThroughArgs = implode(' ', array_slice($argv, $pos + 1));
-            $argv = array_slice($argv, 0, $pos);
+            $argv = array_slice($argv, 0, $pos + 1);
+            $argv[$pos] = 'passthrough';//replace -- with a solid arg for the command, this will later be replaced by the passthroughs
         }
 
         // loading from other directory
@@ -114,7 +236,10 @@ class Tg
         return $argv;
     }
 
-    protected function checkProjectInitialized()
+    /**
+     * @return bool
+     */
+    protected function autoloadCommandFile()
     {
         $initialized = false;
         //This should always pass if the dir is the default cwd
@@ -139,6 +264,9 @@ class Tg
 
     }
 
+    /**
+     * @return bool
+     */
     protected function checkForTgFile()
     {
         if (file_exists($this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE)) {
@@ -147,6 +275,9 @@ class Tg
         return false;
     }
 
+    /**
+     * @return bool
+     */
     protected function loadTxCommands()
     {
         require_once $this->dir . DIRECTORY_SEPARATOR . Tg::TGFILE;
@@ -158,154 +289,8 @@ class Tg
 
 
     /**
-     * @param null $input Input
-     * @return int|void
-     * @throws \Exception
      *
-     * Run tg and return an error code
      */
-    public function run($input = null)
-    {
-        register_shutdown_function(array($this, 'shutdown'));
-        set_error_handler(array($this, 'handleError'));
-
-        $app = new Application('Tx', self::VERSION);
-
-        if (!$this->checkProjectInitialized()) {
-            $this->output->writeln("Tx is not initialized here. Will be initialized");
-            $app->add(new Init('init'));
-            $app->setDefaultCommand('tg:init');
-            $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
-            $app->run($this->input, $this->output);
-            return 0;
-        }
-
-        $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
-
-        //Load our TxCommands file
-        $this->addCommandsFromClass($app, Tg::TGCLASS, $this->passThroughArgs);
-
-        //Load our core commands
-        $this->addRoboCommands(__DIR__, $app);
-        $this->addSymfonyCommands(__DIR__, $app);
-
-        //Load our autoloaded commands
-        $this->addRoboCommands($this->autoloader, $app);
-        $this->addSymfonyCommands($this->autoloader, $app);
-
-        $app->setAutoExit(false);
-        Config::setInput($this->input);
-        Config::setOutput($this->output);
-        return $app->run($this->input, $this->output);
-    }
-
-    protected function addRoboCommands($dir, $app)
-    {
-        //Load our core commands
-        $finder = new FindByNamespace($dir);
-        $classes = $finder->find('tg\\RoboCommand');
-        foreach ($classes as $class) {
-            $this->addCommandsFromClass($app, $class, $this->passThroughArgs);
-        }
-    }
-
-    protected function addSymfonyCommands($dir, $app)
-    {
-        $finder = new FindByNamespace($dir);
-        $classes = $finder->find('tg\\Command');
-        foreach ($classes as $class) {
-            $app->add(new $class);
-        }
-    }
-
-
-    /**
-     * @param Application $app
-     * @param $className
-     * @param null $passThrough
-     */
-    public function addCommandsFromClass(Application &$app, $className, $passThrough = null)
-    {
-        $roboTasks = new $className;
-
-        $commandNames = array_filter(get_class_methods($className), function ($m) {
-            return !in_array($m, ['__construct']);
-        });
-
-        foreach ($commandNames as $commandName) {
-            $classParts = explode('\\', $className);
-            $final = array_pop($classParts);
-            $cleanName = strtolower($final);
-            $command = $this->createCommand($cleanName, new TaskInfo($className, $commandName));
-            $command->setCode(function (InputInterface $input) use ($roboTasks, $commandName, $passThrough) {
-                // get passthru args
-                $args = $input->getArguments();
-                array_shift($args);
-                if ($passThrough) {
-                    $args[key(array_slice($args, -1, 1, true))] = $passThrough;
-                }
-                $args[] = $input->getOptions();
-
-                $res = call_user_func_array([$roboTasks, $commandName], $args);
-                if (is_int($res)) {
-                    exit($res);
-                }
-                if (is_bool($res)) {
-                    exit($res ? 0 : 1);
-                }
-                if ($res instanceof Result) {
-                    exit($res->getExitCode());
-                }
-            });
-            $app->add($command);
-        }
-    }
-
-    public function createCommand($className, TaskInfo $taskInfo)
-    {
-
-        if ($className === strtolower(Tg::TGCLASS)) {
-            $name = $taskInfo->getName();
-        } else {
-            $camel = preg_replace("/:/", '-', $taskInfo->getName());
-            $name = $className . ':' . $camel;
-        }
-
-        $task = new Command($name);
-        $task->setDescription($taskInfo->getDescription());
-        $task->setHelp($taskInfo->getHelp());
-
-        $args = $taskInfo->getArguments();
-        foreach ($args as $name => $val) {
-            $description = $taskInfo->getArgumentDescription($name);
-            if ($val === TaskInfo::PARAM_IS_REQUIRED) {
-                $task->addArgument($name, InputArgument::REQUIRED, $description);
-            } elseif (is_array($val)) {
-                $task->addArgument($name, InputArgument::IS_ARRAY, $description, $val);
-            } else {
-                $task->addArgument($name, InputArgument::OPTIONAL, $description, $val);
-            }
-        }
-        $opts = $taskInfo->getOptions();
-        foreach ($opts as $name => $val) {
-            $description = $taskInfo->getOptionDescription($name);
-
-            $fullName = $name;
-            $shortcut = '';
-            if (strpos($name, '|')) {
-                list($fullName, $shortcut) = explode('|', $name, 2);
-            }
-
-            if (is_bool($val)) {
-                $task->addOption($fullName, $shortcut, InputOption::VALUE_NONE, $description);
-            } else {
-                $task->addOption($fullName, $shortcut, InputOption::VALUE_OPTIONAL, $description, $val);
-            }
-        }
-
-        return $task;
-    }
-
     public function shutdown()
     {
         $error = error_get_last();
@@ -317,6 +302,9 @@ class Tg
         );
     }
 
+    /**
+     * @return bool
+     */
     public function handleError()
     {
         if (error_reporting() === 0) {

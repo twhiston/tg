@@ -8,16 +8,19 @@
 
 namespace twhiston\tg\Traits;
 
-use Robo\Contract\CommandInterface;
 
 trait Watcher
 {
 
-    protected function startWatcher(callable $task, $path = null, $args = [])
+    protected function startWatcher(callable $task, $path = __DIR__)
     {
-        //TODO remove this
-        $path = (!$path)?__DIR__ . '/../../composer.json':$path;
+
+        if (!file_exists($path)) {
+            throw new \Exception("$path not found");
+        }
         $this->taskWatch()->monitor($path, $task)->run();
     }
+
+    abstract public function taskWatch();
 
 }
