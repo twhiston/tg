@@ -93,3 +93,8 @@ You can pass through arguments to commands invoked by tg, just like robo simply 
 ie
 If your command has the method signature `public function watch($path,$unitArgs)` where `$unitArgs` are the arguments to pass through to phpunit you would call the command like this
 `tg watch /path/to/watch unitArgs -- --configuration=phpunit.xml.dist -- coverage=clover`
+
+## Command Caching
+When tg is run in a folder where tg commands reside in a local vendor dir it will create an info folder ./.tg
+This folder and the cache file it holds are created to speed up execution of tg so the vendor autodetection does not need to be done on every run, however this also means that if you require new tg libraries you will need to delete these files
+You can do so by running `tg tg:cache-clear`
