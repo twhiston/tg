@@ -69,7 +69,7 @@ class ClassCache
         if (!$bypassCache) {
             $classes = $this->hasCacheMap($sanitized);
         }
-        if (empty($classes)) {
+        if ($classes === null) {
             $classes = [];
             foreach ($locations as $location) {
                 $classes = array_merge($classes, $this->findClasses($location, 'tg\\' . $classPattern));
@@ -85,7 +85,7 @@ class ClassCache
     {
         foreach ($caches as $cache) {
             if ($this->hasCacheMap($cache)) {
-                unlink($this->cachePath . $cache . 'CacheMap.yml');
+                unlink($this->getCacheName($cache));
             }
         }
     }
@@ -105,7 +105,7 @@ class ClassCache
 
     protected function hasCacheMap($cachename)
     {
-        if (file_exists($this->cachePath . $cachename . 'CacheMap.yml')) {
+        if (file_exists($this->getCacheName($cachename))) {
             return $this->getCacheMap($cachename);
         }
         return null;
@@ -114,12 +114,17 @@ class ClassCache
     protected function saveCacheMap($cachename, $cachemap)
     {
         $yaml = Yaml::dump($cachemap);
-        file_put_contents($this->cachePath . $cachename . 'CacheMap.yml', $yaml);
+        file_put_contents($this->getCacheName($cachename), $yaml);
     }
 
     private function getCacheMap($cachename)
     {
-        return Yaml::parse(file_get_contents($this->cachePath . $cachename . 'CacheMap.yml'));
+        return Yaml::parse(file_get_contents($this->getCacheName($cachename)));
+    }
+
+    private function getCacheName($cachename)
+    {
+        return $this->cachePath . $cachename . 'CacheMap.yml';
     }
 
     /**

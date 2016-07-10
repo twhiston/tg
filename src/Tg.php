@@ -138,7 +138,7 @@ class Tg
         set_error_handler([$this, 'handleError']);
 
         if ($this->classCache->getCachePath() === null) {
-            $this->classCache->setCachePath(__DIR__ . "/../cache/");
+            $this->classCache->setCachePath(__DIR__ . "/../.tg/");
         }
         $hasCommandFile = $this->autoloadCommandFile();
 
@@ -188,7 +188,10 @@ class Tg
         //Load the dynamic paths
         if (file_exists($this->dir . '/vendor')) {
             $locations = [$this->dir . '/vendor'];
-            $this->addCommands($commandLoader, $locations, true);
+            $path = $this->classCache->getCachePath();
+            $this->classCache->setCachePath($this->dir . '/.tg/');
+            $this->addCommands($commandLoader, $locations);
+            $this->classCache->setCachePath($path);
         }
     }
 
