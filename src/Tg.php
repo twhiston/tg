@@ -113,7 +113,7 @@ class Tg
      */
     public function addCommandsFromPaths(array $paths)
     {
-        $commandLoader = new CommandLoader($this->app);
+        $commandLoader = new CommandLoader();
         $this->addCommands($commandLoader, $paths);
     }
 
