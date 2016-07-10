@@ -108,6 +108,22 @@ class Tg
         $this->classCache->setCachePath($cachePath);
     }
 
+    /**
+     * @param array $paths
+     */
+    public function addCommandsFromPaths(array $paths)
+    {
+        $commandLoader = new CommandLoader();
+        $this->addCommands($commandLoader, $paths);
+    }
+
+    /**
+     * @return \Symfony\Component\Console\Command\Command[]
+     */
+    public function getRegisteredCommands()
+    {
+        return $this->app->all();
+    }
 
     /**
      * @param null $input Input
@@ -128,46 +144,68 @@ class Tg
 
         $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
 
-        $commandLoader = new CommandLoader($this->app, $this->classCache);
-
-        if ($hasCommandFile) {
-            //Load our TxCommands file
-            $commandLoader->addCommandsFromClass(Tg::TGCLASS, $this->passThroughArgs);
-        }
-
-        //Load our core commands that are a part of the app
-        $locations = [__DIR__, $this->vendorPath];
-        $commandLoader->loadCommandsFromClasses($locations);
-
-        $this->loadDynamicPaths($commandLoader);
-
-        $this->app->setAutoExit(false);
+        //Load all our commands
+        $commandLoader = new CommandLoader();
+        $this->loadLocalFile($commandLoader, $hasCommandFile);//Cwd project specific
+        $this->loadCoreCommands($commandLoader);//Tg vendor and core
+        $this->loadLocalVendors($commandLoader);//Cwd vendor
 
         //Set up the robo static config class :(
         Config::setInput($this->input);
         Config::setOutput($this->output);
 
+        $this->app->setAutoExit(false);
         return $this->app->run($this->input, $this->output);
     }
 
-    protected function loadDynamicPaths(CommandLoader $commandLoader)
+    /**
+     * @param CommandLoader $commandLoader
+     * @param $hasCommandFile
+     */
+    protected function loadLocalFile(CommandLoader $commandLoader, $hasCommandFile)
+    {
+        if ($hasCommandFile) {
+            //Load our TxCommands file
+            $commands = $commandLoader->createRoboCommands([Tg::TGCLASS], $this->passThroughArgs);
+            $this->app->addCommands($commands);
+        }
+    }
+
+    /**
+     * @param CommandLoader $commandLoader
+     */
+    protected function loadCoreCommands(CommandLoader $commandLoader)
+    {
+        $locations = [__DIR__, $this->vendorPath];
+        $this->addCommands($commandLoader, $locations);
+    }
+
+    /**
+     * @param CommandLoader $commandLoader
+     */
+    protected function loadLocalVendors(CommandLoader $commandLoader)
     {
         //Load the dynamic paths
         if (file_exists($this->dir . '/vendor')) {
             $locations = [$this->dir . '/vendor'];
-            $commandLoader->loadCommandsFromClasses($locations, true);
+            $this->addCommands($commandLoader, $locations, true);
         }
     }
 
-    public function addCommandsFromPaths(array $paths)
+    /**
+     * @param CommandLoader $commandLoader
+     * @param $locations
+     */
+    private function addCommands(CommandLoader $commandLoader, $locations, $bypassCache = false)
     {
-        $commandLoader = new CommandLoader($this->app, $this->classCache);
-        $commandLoader->loadCommandsFromClasses($paths, true);
-    }
+        $classes = $this->classCache->getClasses('RoboCommand\\', $locations, $bypassCache);
+        $commands = $commandLoader->createRoboCommands($classes, $this->passThroughArgs);
+        $this->app->addCommands($commands);
 
-    public function getRegisteredCommands()
-    {
-        return $this->app->all();
+        $classes = $this->classCache->getClasses('Command\\', $locations, $bypassCache);
+        $commands = $commandLoader->createSymfonyCommands($classes);
+        $this->app->addCommands($commands);
+
     }
 
     /**

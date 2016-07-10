@@ -56,7 +56,14 @@ class Merger implements MergerInterface
     protected function processFromConfigFile($tokens)
     {
         //merge the 3 arrays in the config into an actual config array
-        $fileConfig = (count($tokens) > 1) ? $this->configFile[$tokens[0]][$tokens[1]] : $this->configFile[$tokens[0]];
+        $fileConfig = [];
+        if (array_key_exists($tokens[0], $this->configFile)) {
+            $fileConfig = (count($tokens) > 1
+                && array_key_exists($tokens[1], $this->configFile[$tokens[0]])) ?
+                $this->configFile[$tokens[0]][$tokens[1]] :
+                $this->configFile[$tokens[0]];
+
+        }
         $extractedConfig = [];
         foreach ($fileConfig as $key => $set) {
             if (is_array($set)) {

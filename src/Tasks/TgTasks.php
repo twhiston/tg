@@ -8,10 +8,17 @@
 
 namespace twhiston\tg\Tasks;
 
-
+/**
+ * Class TgTasks
+ * @package twhiston\tg\Tasks
+ * Extend this class to provide your project specific commands
+ */
 abstract class TgTasks extends \Robo\Tasks
 {
 
-    const TGCONFIG = 'tg'; //Optional config file location
+    /**
+     * Optional config file name, without extension, can include path
+     */
+    const TGCONFIG = 'tg';
 
 }
