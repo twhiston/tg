@@ -3,6 +3,8 @@
 # General
 
 Make init and conf file writing safe, and give them an option to force replace the old file
+graceful exit when command doesnt exist
+option to cache local vendor detections
 
 # Commands
 
