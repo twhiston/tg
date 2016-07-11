@@ -30,7 +30,7 @@ class Tg
     /**
      * App Version
      */
-    const VERSION = '0.1.3';
+    const VERSION = '0.1.4';
 
     /**
      * Expected class for project specific Command file

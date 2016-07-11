@@ -1,6 +1,6 @@
 # tg
 
-v 0.1.3
+v 0.1.4
 
 ------
 A command line runner for Robo
