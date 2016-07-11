@@ -31,6 +31,9 @@ sudo chmod 700 tg.phar
 mv tg.phar /usr/local/bin/tg
 ```
 
+**Tg requires the ability to write to your computer** you may need to set `phar.readonly = Off` in your local php.ini
+
+
 ## Why tg?
 
 Why not? in truth because t and g are well placed to type on lots of keyboard layouts,
