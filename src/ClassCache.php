@@ -69,7 +69,7 @@ class ClassCache
         if (!$bypassCache) {
             $classes = $this->hasCacheMap($sanitized);
         }
-        if ($classes === null || empty($classes)) {
+        if ($classes === null) {
             $classes = [];
             foreach ($locations as $location) {
                 $classes = array_merge($classes, $this->findClasses($location, 'tg\\' . $classPattern));
