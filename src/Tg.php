@@ -252,7 +252,7 @@ class Tg
             $locations = [$this->dir . '/vendor'];
             $path = $this->classCache->getCachePath();
             $this->classCache->setCachePath($this->dir . '/.tg/');
-            $this->addCommands($commandLoader, $locations, true);
+            $this->addCommands($commandLoader, $locations , $this->libDevMode);
             $this->classCache->setCachePath($path);
         }
     }
