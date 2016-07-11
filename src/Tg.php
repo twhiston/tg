@@ -17,6 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 use TgCommands;
 use twhiston\tg\Argv\Merger;
+use twhiston\tg\RoboCommand\Dev;
 
 /**
  * Class Tx
@@ -77,6 +78,12 @@ class Tg
      */
     private $classCache;
 
+    /**
+     * @var bool
+     * Libdev mode stops all caching and also searches the cwd working directory for commands
+     */
+    private $libDevMode;
+
 
     /**
      * Tg constructor.
@@ -90,6 +97,7 @@ class Tg
         //Start the app here as this gives the opportunity to add extra classes by calling the add methods before run
         $this->app = new Application('Tg', self::VERSION);
         $this->classCache = new ClassCache();
+        $this->libDevMode = false;
     }
 
     /**
@@ -142,6 +150,8 @@ class Tg
         }
         $hasCommandFile = $this->autoloadCommandFile();
 
+        $this->setupDevModes();
+
         $this->input = $this->prepareInput($input ? $input : $_SERVER['argv']);
 
         //Load all our commands
@@ -149,6 +159,9 @@ class Tg
         $this->loadLocalFile($commandLoader, $hasCommandFile);//Cwd project specific
         $this->loadCoreCommands($commandLoader);//Tg vendor and core
         $this->loadLocalVendors($commandLoader);//Cwd vendor
+        if ($this->libDevMode) {
+            $this->loadLocalSrc($commandLoader);
+        }
 
         //Set up the robo static config class :(
         Config::setInput($this->input);
@@ -156,6 +169,45 @@ class Tg
 
         $this->app->setAutoExit(false);
         return $this->app->run($this->input, $this->output);
+    }
+
+    private function setupDevModes()
+    {
+        $config = $this->getDevConfig();
+        $this->libDevMode = $this->checkLibDevMode($config);
+
+    }
+
+    private function getDevConfig()
+    {
+        if (file_exists(Dev::devLocation())) {
+            return Yaml::parse(file_get_contents(Dev::devLocation()));
+        }
+        return [];
+    }
+
+
+    private function checkLibDevMode(array $config)
+    {
+        if (array_key_exists('libdev', $config)) {
+            return $config['libdev'];
+        }
+        return false;
+    }
+
+    /**
+     * @param CommandLoader $commandLoader
+     * If libdev mode is on this will examine the local src folder as well and will NOT cache anything
+     */
+    protected function loadLocalSrc(CommandLoader $commandLoader)
+    {
+        if (file_exists($this->dir . '/src')) {
+            $locations = [$this->dir . '/src'];
+            $location = $commandLoader->getVendorExtension();
+            $commandLoader->setVendorExtension('/src');
+            $this->addCommands($commandLoader, $locations, $this->libDevMode);
+            $commandLoader->setVendorExtension($location);
+        }
     }
 
     /**
@@ -177,7 +229,7 @@ class Tg
     protected function loadCoreCommands(CommandLoader $commandLoader)
     {
         $locations = [__DIR__, $this->vendorPath];
-        $this->addCommands($commandLoader, $locations);
+        $this->addCommands($commandLoader, $locations, $this->libDevMode);
     }
 
     /**
@@ -190,7 +242,7 @@ class Tg
             $locations = [$this->dir . '/vendor'];
             $path = $this->classCache->getCachePath();
             $this->classCache->setCachePath($this->dir . '/.tg/');
-            $this->addCommands($commandLoader, $locations);
+            $this->addCommands($commandLoader, $locations, $this->libDevMode);
             $this->classCache->setCachePath($path);
         }
     }
@@ -218,8 +270,9 @@ class Tg
     protected function prepareInput($argv)
     {
         //Merge the input with the config file
-        $argv = $this->mergeArgv($argv);
-
+        if (!$this->libDevMode) {
+            $argv = $this->mergeArgv($argv);
+        }
         $argv = $this->prepareRoboInput($argv);
 
         return new ArgvInput($argv);
@@ -262,7 +315,7 @@ class Tg
         if ($pos !== false) {
             $this->passThroughArgs = implode(' ', array_slice($argv, $pos + 1));
             $argv = array_slice($argv, 0, $pos + 1);
-            $argv[$pos] = 'passthrough';//replace -- with a solid arg for the command, this will later be replaced by the passthroughs
+            $argv[$pos] = 'passthrough';//replace '--' with a solid arg for the command, this will later be replaced by the passthroughs
         }
 
         // loading from other directory

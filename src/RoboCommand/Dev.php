@@ -9,6 +9,7 @@
 namespace twhiston\tg\RoboCommand;
 
 use Robo\Tasks;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class Dev
@@ -18,6 +19,60 @@ use Robo\Tasks;
  */
 class Dev extends Tasks
 {
+
+    public static function devLocation()
+    {
+        return Dev::devPath() . Dev::devFilename();
+    }
+
+    public static function devPath()
+    {
+        return getcwd() . '/.tg/';
+    }
+
+    public static function devFilename()
+    {
+        return 'dev.yml';
+    }
+
+    /**
+     * Set the library developer state with libdev true no classes will be cached and the cwd src folder will also be searched
+     */
+    public function libdev($on = 'true')
+    {
+        if ($on !== 'true' && $on !== 'false') {
+            $this->yell('must be true/false');
+            return 1;
+        }
+        $on = $on === 'true'?true:false;
+        $output = ["libdev" => $on];
+        $yaml = Yaml::dump($output);
+        if (!file_exists(Dev::devPath())) {
+            mkdir(Dev::devPath());
+        }
+        file_put_contents(Dev::devLocation(), $yaml);
+        $output = "Lib Dev Mode: ";
+        $output .= ($on)?'true':'false';
+        $this->yell($output);
+    }
+
+    /**
+     * Get the current lib dev state
+     */
+    public function libdevState()
+    {
+
+        if (file_exists(Dev::devLocation())) {
+            $yaml = Yaml::parse(file_get_contents(Dev::devLocation()));
+            if (array_key_exists('libdev', $yaml)) {
+                $output = "Lib Dev Mode: ";
+                $output .= ( $yaml['libdev'])?'true':'false';
+                $this->yell($output);
+                return;
+            }
+        }
+        $this->yell('Lib Dev Mode: Off');
+    }
 
     /**
      * Add a change to the changelog for the current version number

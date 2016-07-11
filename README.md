@@ -97,3 +97,9 @@ If your command has the method signature `public function watch($path,$unitArgs)
 When tg is run in a folder where tg commands reside in a local vendor dir it will create an info folder ./.tg
 This folder and the cache file it holds are created to speed up execution of tg so the vendor autodetection does not need to be done on every run, however this also means that if you require new tg libraries you will need to delete these files
 You can do so by running `tg tg:cache-clear`
+
+## LibDev mode
+If you are writing a library for tg its pretty useful to have it autodetect your cwd src folder and not cache anything.
+Turn it on with: `tg dev:libdev` or `tg dev:libdev` and off with `tg dev:libdev false`
+Libdev mode is on a cwd basis, and the value is stored in the .tg folder
+you can check the cwd's libdev state with `tg:libdev-state`

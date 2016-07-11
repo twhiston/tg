@@ -64,7 +64,7 @@ class ClassCache
 
     public function getClasses($classPattern, array $locations, $bypassCache = false)
     {
-        $classes = [];
+        $classes = null;
         $sanitized = preg_replace("/[^A-Za-z0-9 ]/", '', $classPattern);
         if (!$bypassCache) {
             $classes = $this->hasCacheMap($sanitized);

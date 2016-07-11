@@ -42,6 +42,11 @@ class CommandLoader
         $this->vendorExtension = $vendorExtension;
     }
 
+    public function getVendorExtension()
+    {
+        return $this->vendorExtension;
+    }
+
 
     /**
      * @param $classes
