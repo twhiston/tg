@@ -18,6 +18,7 @@ use Symfony\Component\Yaml\Yaml;
 use TgCommands;
 use twhiston\tg\Argv\Merger;
 use twhiston\tg\RoboCommand\Dev;
+use twhiston\tg\RoboCommand\Tg as TgRobo;
 
 /**
  * Class Tx
@@ -84,6 +85,8 @@ class Tg
      */
     private $libDevMode;
 
+    private $coreDevMode;
+
 
     /**
      * Tg constructor.
@@ -98,6 +101,7 @@ class Tg
         $this->app = new Application('Tg', self::VERSION);
         $this->classCache = new ClassCache();
         $this->libDevMode = false;
+        $this->coreDevMode = false;
     }
 
     /**
@@ -158,8 +162,12 @@ class Tg
         $commandLoader = new CommandLoader();
         $this->loadLocalFile($commandLoader, $hasCommandFile);//Cwd project specific
         $this->loadCoreCommands($commandLoader);//Tg vendor and core
-        $this->loadLocalVendors($commandLoader);//Cwd vendor
+        if (!$this->coreDevMode) {
+            //If we are developing in the core we dont want to load cwd vendors folder at all
+            $this->loadLocalVendors($commandLoader);//Cwd vendor
+        }
         if ($this->libDevMode) {
+            //If we are developing a library we want to load the cwd source folder
             $this->loadLocalSrc($commandLoader);
         }
 
@@ -174,23 +182,25 @@ class Tg
     private function setupDevModes()
     {
         $config = $this->getDevConfig();
-        $this->libDevMode = $this->checkLibDevMode($config);
+        //TODO - foreach
+        $this->libDevMode = $this->checkDevMode($config,'lib');
+        $this->coreDevMode = $this->checkDevMode($config,'core');
 
     }
 
     private function getDevConfig()
     {
-        if (file_exists(Dev::devLocation())) {
-            return Yaml::parse(file_get_contents(Dev::devLocation()));
+        if (file_exists(TgRobo::devLocation())) {
+            return Yaml::parse(file_get_contents(TgRobo::devLocation()));
         }
         return [];
     }
 
 
-    private function checkLibDevMode(array $config)
+    private function checkDevMode(array $config,$key)
     {
-        if (array_key_exists('libdev', $config)) {
-            return $config['libdev'];
+        if (array_key_exists($key, $config)) {
+            return $config[$key];
         }
         return false;
     }
@@ -242,7 +252,7 @@ class Tg
             $locations = [$this->dir . '/vendor'];
             $path = $this->classCache->getCachePath();
             $this->classCache->setCachePath($this->dir . '/.tg/');
-            $this->addCommands($commandLoader, $locations, $this->libDevMode);
+            $this->addCommands($commandLoader, $locations, true);
             $this->classCache->setCachePath($path);
         }
     }
