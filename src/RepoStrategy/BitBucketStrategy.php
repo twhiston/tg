@@ -6,7 +6,7 @@
  * Time: 20:51
  */
 
-namespace twhiston\tg\Phar;
+namespace twhiston\tg\RepoStrategy;
 
 use Humbug\SelfUpdate\Updater;
 use Humbug\SelfUpdate\VersionParser;

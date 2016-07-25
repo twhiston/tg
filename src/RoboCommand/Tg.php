@@ -11,7 +11,7 @@ namespace twhiston\tg\RoboCommand;
 use Humbug\SelfUpdate\Updater;
 use Robo\Tasks;
 use Symfony\Component\Yaml\Yaml;
-use twhiston\tg\Phar\BitBucketStrategy;
+use twhiston\tg\RepoStrategy\BitBucketStrategy;
 use twhiston\tg\Tg as TgApp;
 use twhiston\tg\Traits\CanClearCache;
 
