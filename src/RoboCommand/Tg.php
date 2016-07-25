@@ -10,6 +10,7 @@ namespace twhiston\tg\RoboCommand;
 
 use Robo\Tasks;
 use Symfony\Component\Yaml\Yaml;
+use twhiston\tg\Tg as TgApp;
 use twhiston\tg\Traits\CanClearCache;
 
 /**
@@ -40,7 +41,7 @@ class Tg extends Tasks
             return;
         }
         $state = $this->fixBoolInput($state);
-        
+
         if ($this->hasDevFile()) {
             $devfile = Yaml::parse(file_get_contents(Tg::devLocation()));
         } else {
@@ -56,32 +57,8 @@ class Tg extends Tasks
         $this->yell($output);
 
         $this->clearCache();
-        
+
     }
-
-    /**
-     * Get the current lib dev state
-     */
-    public function ds($mode)
-    {
-
-        if ($this->testModeInput($mode) === false) {
-            $this->yell('must be a valid Mode: ' . implode(' | ', Tg::MODES));
-            return;
-        }
-
-        if (file_exists(Tg::devLocation())) {
-            $yaml = Yaml::parse(file_get_contents(Tg::devLocation()));
-            if (array_key_exists($mode, $yaml)) {
-                $output = "{$mode} Dev Mode: ";
-                $output .= ($yaml[$mode]) ? 'true' : 'false';
-                $this->yell($output);
-                return;
-            }
-        }
-        $this->yell("{$mode} Dev Mode: false");
-    }
-
 
     private function testModeInput($mode)
     {
@@ -119,6 +96,52 @@ class Tg extends Tasks
     public static function devFilename()
     {
         return 'dev.yml';
+    }
+
+    /**
+     * Get the current lib dev state
+     */
+    public function ds($mode)
+    {
+
+        if ($this->testModeInput($mode) === false) {
+            $this->yell('must be a valid Mode: ' . implode(' | ', Tg::MODES));
+            return;
+        }
+
+        if (file_exists(Tg::devLocation())) {
+            $yaml = Yaml::parse(file_get_contents(Tg::devLocation()));
+            if (array_key_exists($mode, $yaml)) {
+                $output = "{$mode} Dev Mode: ";
+                $output .= ($yaml[$mode]) ? 'true' : 'false';
+                $this->yell($output);
+                return;
+            }
+        }
+        $this->yell("{$mode} Dev Mode: false");
+    }
+
+    public function selfUpdate()
+    {
+        $this->yell('You MUST have git installed in your local environment for this command to work', 100, 'red');
+        $result = $this->taskExec('git')
+                       ->args(['describe'])
+                       ->optionList('--abbrev=0 --tags')
+                       ->printed(false)
+                       ->run();
+        $repoVer = $result->getMessage();
+
+        $repoVer = preg_replace('/\s+/S', "", $repoVer);//clean up any crap like newlines
+
+        if ($repoVer === TgApp::VERSION) {
+            $this->yell("No update found, version: " . TgApp::VERSION . " is current", 100);
+            return;
+        } elseif ($repoVer < TgApp::VERSION) {
+            $this->yell("No update found, version: " . TgApp::VERSION . " is higher than current stable, maybe you are using a dev build", 100, 'yellow');
+            return;
+        } else {
+            $this->yell("Update found: " . $repoVer, 100);
+        }
     }
 
     private function makeDevPath()
