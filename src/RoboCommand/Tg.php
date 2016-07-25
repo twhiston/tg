@@ -138,6 +138,9 @@ class Tg extends Tasks
         try {
             $this->yell('Updating', 100, 'green');
             $result = $updater->update();
+            if (!$result) {
+                $this->yell('You have the most recent version', 100, 'yellow');
+            }
         } catch (\Exception $e) {
             $this->yell('Error updating: ' . $e->getMessage(), 100, 'red');
         }
