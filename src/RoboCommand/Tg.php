@@ -8,8 +8,10 @@
 
 namespace twhiston\tg\RoboCommand;
 
+use Humbug\SelfUpdate\Updater;
 use Robo\Tasks;
 use Symfony\Component\Yaml\Yaml;
+use twhiston\tg\Phar\BitbucketStrategy;
 use twhiston\tg\Tg as TgApp;
 use twhiston\tg\Traits\CanClearCache;
 
@@ -123,24 +125,21 @@ class Tg extends Tasks
 
     public function selfUpdate()
     {
-        $this->yell('You MUST have git installed in your local environment for this command to work', 100, 'red');
-        $result = $this->taskExec('git')
-                       ->args(['describe'])
-                       ->optionList('--abbrev=0 --tags')
-                       ->printed(false)
-                       ->run();
-        $repoVer = $result->getMessage();
+//        if (!extension_loaded('Phar') || !(\Phar::running(false))) {
+//            $this->yell('Can only update Phar version. Update via a vcs');
+//        }
 
-        $repoVer = preg_replace('/\s+/S', "", $repoVer);//clean up any crap like newlines
-
-        if ($repoVer === TgApp::VERSION) {
-            $this->yell("No update found, version: " . TgApp::VERSION . " is current", 100);
-            return;
-        } elseif ($repoVer < TgApp::VERSION) {
-            $this->yell("No update found, version: " . TgApp::VERSION . " is higher than current stable, maybe you are using a dev build", 100, 'yellow');
-            return;
-        } else {
-            $this->yell("Update found: " . $repoVer, 100);
+        $updater = new Updater(null, false);
+        $updater->setStrategyObject(new BitbucketStrategy($updater));//Yep, that sucks
+        $updater->getStrategy()->setPackageName('twhiston/tg');
+        $updater->getStrategy()->setPharName('tg.phar');
+        $updater->getStrategy()->setCurrentLocalVersion(TgApp::VERSION);
+        $remoteVersion = $updater->getStrategy()->getCurrentRemoteVersion($updater);
+        try {
+            $result = $updater->update();
+            $result ? $this->yell('Updated', 100, 'green') : $this->yell('No update needed', 100, 'yellow');
+        } catch (\Exception $e) {
+            $this->yell('Error updating', 100, 'red');
         }
     }
 
