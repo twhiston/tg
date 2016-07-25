@@ -8,8 +8,11 @@
 
 namespace twhiston\tg\RoboCommand;
 
+use Humbug\SelfUpdate\Updater;
 use Robo\Tasks;
 use Symfony\Component\Yaml\Yaml;
+use twhiston\tg\Phar\BitbucketStrategy;
+use twhiston\tg\Tg as TgApp;
 use twhiston\tg\Traits\CanClearCache;
 
 /**
@@ -40,7 +43,7 @@ class Tg extends Tasks
             return;
         }
         $state = $this->fixBoolInput($state);
-        
+
         if ($this->hasDevFile()) {
             $devfile = Yaml::parse(file_get_contents(Tg::devLocation()));
         } else {
@@ -56,32 +59,8 @@ class Tg extends Tasks
         $this->yell($output);
 
         $this->clearCache();
-        
+
     }
-
-    /**
-     * Get the current lib dev state
-     */
-    public function ds($mode)
-    {
-
-        if ($this->testModeInput($mode) === false) {
-            $this->yell('must be a valid Mode: ' . implode(' | ', Tg::MODES));
-            return;
-        }
-
-        if (file_exists(Tg::devLocation())) {
-            $yaml = Yaml::parse(file_get_contents(Tg::devLocation()));
-            if (array_key_exists($mode, $yaml)) {
-                $output = "{$mode} Dev Mode: ";
-                $output .= ($yaml[$mode]) ? 'true' : 'false';
-                $this->yell($output);
-                return;
-            }
-        }
-        $this->yell("{$mode} Dev Mode: false");
-    }
-
 
     private function testModeInput($mode)
     {
@@ -119,6 +98,49 @@ class Tg extends Tasks
     public static function devFilename()
     {
         return 'dev.yml';
+    }
+
+    /**
+     * Get the current lib dev state
+     */
+    public function ds($mode)
+    {
+
+        if ($this->testModeInput($mode) === false) {
+            $this->yell('must be a valid Mode: ' . implode(' | ', Tg::MODES));
+            return;
+        }
+
+        if (file_exists(Tg::devLocation())) {
+            $yaml = Yaml::parse(file_get_contents(Tg::devLocation()));
+            if (array_key_exists($mode, $yaml)) {
+                $output = "{$mode} Dev Mode: ";
+                $output .= ($yaml[$mode]) ? 'true' : 'false';
+                $this->yell($output);
+                return;
+            }
+        }
+        $this->yell("{$mode} Dev Mode: false");
+    }
+
+    public function selfUpdate()
+    {
+//        if (!extension_loaded('Phar') || !(\Phar::running(false))) {
+//            $this->yell('Can only update Phar version. Update via a vcs');
+//        }
+
+        $updater = new Updater(null, false);
+        $updater->setStrategyObject(new BitbucketStrategy($updater));//Yep, that sucks
+        $updater->getStrategy()->setPackageName('twhiston/tg');
+        $updater->getStrategy()->setPharName('tg.phar');
+        $updater->getStrategy()->setCurrentLocalVersion(TgApp::VERSION);
+        $remoteVersion = $updater->getStrategy()->getCurrentRemoteVersion($updater);
+        try {
+            $result = $updater->update();
+            $result ? $this->yell('Updated', 100, 'green') : $this->yell('No update needed', 100, 'yellow');
+        } catch (\Exception $e) {
+            $this->yell('Error updating', 100, 'red');
+        }
     }
 
     private function makeDevPath()

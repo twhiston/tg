@@ -1,6 +1,6 @@
 # tg
 
-v 0.1.5
+v 0.1.6
 
 ------
 A command line runner for Robo
@@ -33,6 +33,8 @@ mv tg.phar /usr/local/bin/tg
 
 **Tg requires the ability to write to your computer** you may need to set `phar.readonly = Off` in your local php.ini
 
+## Update
+`tg tg:self-update`
 
 ## Why tg?
 
