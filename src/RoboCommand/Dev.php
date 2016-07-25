@@ -30,9 +30,8 @@ class Dev extends Tasks
     }
 
     /**
-     * @return mixed
-     *
      * Get the current version number and yell it
+     * @return mixed
      */
     public function ver()
     {
@@ -46,7 +45,7 @@ class Dev extends Tasks
      */
     protected function getVersion()
     {
-        $path = __DIR__ . '/.semver';
+        $path = getcwd() . '/.semver';
         return $this->taskSemVer($path)->__toString();
     }
 
