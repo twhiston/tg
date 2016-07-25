@@ -12,7 +12,7 @@ namespace twhiston\tg\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\Finder;
+use twhiston\tg\Traits\CanClearCache;
 
 /**
  * Class Init
@@ -20,6 +20,8 @@ use Symfony\Component\Finder\Finder;
  */
 class CacheClear extends Command
 {
+    
+    use CanClearCache;
 
     /**
      *
@@ -41,16 +43,7 @@ class CacheClear extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $files = Finder::create()
-        ->files()
-        ->name('CommandCacheMap.yml')
-        ->name('RoboCommandCacheMap.yml')
-        ->in(getcwd() . '/.tg');
-        foreach ($files as $file) {
-            $path = $file->getPathname();
-            unlink($path);
-            $output->writeln("Deleted: {$path}");
-        }
+        $this->clearCache($output);
     }
 
 }

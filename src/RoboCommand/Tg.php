@@ -10,6 +10,7 @@ namespace twhiston\tg\RoboCommand;
 
 use Robo\Tasks;
 use Symfony\Component\Yaml\Yaml;
+use twhiston\tg\Traits\CanClearCache;
 
 /**
  * Class Dev
@@ -19,6 +20,8 @@ use Symfony\Component\Yaml\Yaml;
  */
 class Tg extends Tasks
 {
+
+    use CanClearCache;
 
     const MODES = ['lib', 'core'];
 
@@ -51,6 +54,9 @@ class Tg extends Tasks
         $output = "{$mode} Dev Mode: ";
         $output .= ($state) ? 'true' : 'false';
         $this->yell($output);
+
+        $this->clearCache();
+        
     }
 
     /**
