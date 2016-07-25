@@ -1,6 +1,6 @@
 # tg
 
-v 0.1.4
+v 0.1.5
 
 ------
 A command line runner for Robo
@@ -61,8 +61,8 @@ Run `tg list` to see available commands from the cwd.
 
 ### Creating an autoloading command
 
-If you place a class that extends Robo\Tasks in a Namespace that contains `tg\RoboCommand` it can be autodetected and made available for use.
-If you place a class that extends Symfony\Component\Console\Command\Command in a Namespace that contains `tg\Command` it can be autodetected and made available for use.
+If you place a class that extends Robo\Tasks in a Namespace that contains `tg\RoboCommand` inside a folder called `RoboCommand` it can be autodetected and made available for use.
+If you place a class that extends Symfony\Component\Console\Command\Command in a Namespace that contains `tg\Command` inside a folder called `Command` it can be autodetected and made available for use.
 This means you can create a library of common commands, require it via composer in your project, and then call them immediately from tg
 
 ### Project specific command file

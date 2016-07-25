@@ -29,7 +29,7 @@ class TgCommands extends TgTasks
             ->name('*.php')
             ->name('CommandCacheMap.yml')
             ->name('RoboCommandCacheMap.yml')
-            ->notName('dev.yml')
+            ->notName('dev.yml')//no dev modes
             ->notName('Test.php') //no test commands
             ->path('src')
             ->path('cache')

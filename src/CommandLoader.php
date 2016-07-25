@@ -12,12 +12,12 @@ namespace twhiston\tg;
 use Robo\Result;
 use Robo\TaskInfo;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Finder\Finder;
+use twhiston\twLib\Str\Str;
 
 /**
  * Class CommandLoader
@@ -34,6 +34,11 @@ class CommandLoader
         $this->vendorExtension = '/vendor';
     }
 
+    public function getVendorExtension()
+    {
+        return $this->vendorExtension;
+    }
+
     /**
      * @param string $vendorExtension
      */
@@ -41,12 +46,6 @@ class CommandLoader
     {
         $this->vendorExtension = $vendorExtension;
     }
-
-    public function getVendorExtension()
-    {
-        return $this->vendorExtension;
-    }
-
 
     /**
      * @param $classes
@@ -63,25 +62,6 @@ class CommandLoader
         return $output;
     }
 
-
-    /**
-     * @param $classes string|Command[]
-     * @return array|string|\Symfony\Component\Console\Command\Command[]
-     */
-    public function createSymfonyCommands(array $classes)
-    {
-        foreach ($classes as $key => $class) {
-            if (!is_object($class)) {
-                if (class_exists($class)) {
-                    $classes[$key] = new $class;
-                } else {
-                    throw new Exception("Command not found: $class");
-                }
-            }
-        }
-        return $classes;
-    }
-
     /**
      * @param $namespace
      * @param null $passThrough
@@ -91,7 +71,8 @@ class CommandLoader
     {
         $roboTasks = $this->createClass($namespace);
 
-        $commandNames = array_filter(get_class_methods($namespace), function ($m) {
+        $commandNames = array_filter(get_class_methods($namespace), function ($m
+        ) {
             return !in_array($m, ['__construct']);
         });
 
@@ -101,7 +82,11 @@ class CommandLoader
             $final = array_pop($classParts);
             $cleanName = strtolower($final);
             $command = $this->createCommand($cleanName, new TaskInfo($namespace, $commandName));
-            $command->setCode(function (InputInterface $input) use ($roboTasks, $commandName, $passThrough) {
+            $command->setCode(function (InputInterface $input) use (
+              $roboTasks,
+              $commandName,
+              $passThrough
+            ) {
                 // @codeCoverageIgnoreStart
                 // get passthru args
                 $args = $input->getArguments();
@@ -160,7 +145,8 @@ class CommandLoader
             throw new \Exception('Cannot find detected class');
         }
         foreach ($finder as $file) {
-            if ($file->isFile()) {
+            //TODO - there must be a better way to do this? Seems inefficient if we are checking namespace and path. Why not just check the path?
+            if ($file->isFile() && (Str::contains($file->getRelativePath(), 'RoboCommand') !== false || Str::contains($file->getRelativePath(), 'Command'))) {
                 include_once $file->getRealPath();
             }
         }
@@ -214,6 +200,24 @@ class CommandLoader
         }
 
         return $task;
+    }
+
+    /**
+     * @param $classes string|Command[]
+     * @return array|string|\Symfony\Component\Console\Command\Command[]
+     */
+    public function createSymfonyCommands(array $classes)
+    {
+        foreach ($classes as $key => $class) {
+            if (!is_object($class)) {
+                if (class_exists($class)) {
+                    $classes[$key] = new $class;
+                } else {
+                    throw new Exception("Command not found: $class");
+                }
+            }
+        }
+        return $classes;
     }
 
 }
