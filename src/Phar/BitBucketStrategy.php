@@ -22,7 +22,7 @@ use Humbug\SelfUpdate\Strategy\StrategyInterface;
  * The only option is to duplicate the code in this class and just use the interface
  * boo-urns
  */
-class BitbucketStrategy implements StrategyInterface
+class BitBucketStrategy implements StrategyInterface
 {
 
     const API_URL = 'https://packagist.org/packages/%s.json';

@@ -19,7 +19,6 @@ class TgCommands extends TgTasks
         $this->taskComposerInstall()
             ->noDev()
             ->preferDist()
-            ->optimizeAutoloader()
             ->printed(true)
             ->run();
 

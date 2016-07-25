@@ -11,7 +11,7 @@ namespace twhiston\tg\RoboCommand;
 use Humbug\SelfUpdate\Updater;
 use Robo\Tasks;
 use Symfony\Component\Yaml\Yaml;
-use twhiston\tg\Phar\BitbucketStrategy;
+use twhiston\tg\Phar\BitBucketStrategy;
 use twhiston\tg\Tg as TgApp;
 use twhiston\tg\Traits\CanClearCache;
 
@@ -125,21 +125,21 @@ class Tg extends Tasks
 
     public function selfUpdate()
     {
-//        if (!extension_loaded('Phar') || !(\Phar::running(false))) {
-//            $this->yell('Can only update Phar version. Update via a vcs');
-//        }
+        if (!extension_loaded('Phar') || !(\Phar::running(false))) {
+            $this->yell('Can only update Phar version. Update via a vcs');
+            return;
+        }
 
         $updater = new Updater(null, false);
-        $updater->setStrategyObject(new BitbucketStrategy($updater));//Yep, that sucks
+        $updater->setStrategyObject(new BitBucketStrategy($updater));//Yep, that sucks
         $updater->getStrategy()->setPackageName('twhiston/tg');
         $updater->getStrategy()->setPharName('tg.phar');
         $updater->getStrategy()->setCurrentLocalVersion(TgApp::VERSION);
-        $remoteVersion = $updater->getStrategy()->getCurrentRemoteVersion($updater);
         try {
             $result = $updater->update();
             $result ? $this->yell('Updated', 100, 'green') : $this->yell('No update needed', 100, 'yellow');
         } catch (\Exception $e) {
-            $this->yell('Error updating', 100, 'red');
+            $this->yell('Error updating: ' . $e->getMessage(), 100, 'red');
         }
     }
 
