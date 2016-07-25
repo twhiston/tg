@@ -136,8 +136,8 @@ class Tg extends Tasks
         $updater->getStrategy()->setPharName('tg.phar');
         $updater->getStrategy()->setCurrentLocalVersion(TgApp::VERSION);
         try {
+            $this->yell('Updating', 100, 'green');
             $result = $updater->update();
-            $result ? $this->yell('Updated', 100, 'green') : $this->yell('No update needed', 100, 'yellow');
         } catch (\Exception $e) {
             $this->yell('Error updating: ' . $e->getMessage(), 100, 'red');
         }
