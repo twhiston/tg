@@ -11,7 +11,9 @@ use twhiston\tg\Tasks\TgTasks;
 class TgCommands extends TgTasks
 {
 
-    // define public methods as commands
+  /**
+   * build a phar, run it as php ./src/tg phar:build
+   */
     public function pharBuild()
     {
         $collection = $this->collection();
