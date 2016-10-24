@@ -98,7 +98,8 @@ class ClassCache
     {
         if (!file_exists($cachePath)) {
             if (mkdir($cachePath) === false) {
-                throw new Exception('could not create cache path');
+                echo "Could not create cache path ${cachePath}";
+                //ßthrow new Exception('could not create cache path');
             }
         }
     }
