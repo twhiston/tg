@@ -14,6 +14,7 @@
         "codegyre/robo": "^0.7.2",
         "padraic/phar-updater": "^1.0"
     },
+    "bin": ["src/tg"],
     "require-dev": {
         "phpunit/phpunit": "^5.4"
     },
