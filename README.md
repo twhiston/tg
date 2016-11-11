@@ -6,14 +6,7 @@ v 0.1.6
 A command line runner for Robo
 
 ## Master
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/b/twhiston/tg/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/b/twhiston/tg/?branch=master)
-[![Build Status](https://scrutinizer-ci.com/b/twhiston/tg/badges/build.png?b=master)](https://scrutinizer-ci.com/b/twhiston/tg/build-status/master)
-[ ![Codeship Status for twhiston/tg](https://codeship.com/projects/dad81810-1f95-0134-4034-46dd77d58334/status?branch=master)](https://codeship.com/projects/160404)
-
-## Develop
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/b/twhiston/tg/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/b/twhiston/tg/?branch=develop)
-[![Build Status](https://scrutinizer-ci.com/b/twhiston/tg/badges/build.png?b=develop)](https://scrutinizer-ci.com/b/twhiston/tg/build-status/develop)
-[ ![Codeship Status for twhiston/tg](https://codeship.com/projects/dad81810-1f95-0134-4034-46dd77d58334/status?branch=develop)](https://codeship.com/projects/160404)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/twhiston/tg/)](https://scrutinizer-ci.com/g/twhiston/tg/)
 
 ## Install
 
