@@ -6,7 +6,7 @@ v 0.1.6
 A command line runner for Robo
 
 ## Master
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/twhiston/tg/)](https://scrutinizer-ci.com/g/twhiston/tg/)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/twhiston/tg/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/twhiston/tg/?branch=master)
 
 ## Install
 
